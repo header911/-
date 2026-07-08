@@ -3,9 +3,9 @@
    Built on V53.3 without touching sync/backend logic. */
 (function(){
   'use strict';
-  var VERSION='54.0.0-documents-pro';
-  var SITE_VERSION='54docspro';
-  var ROOT_ID='hp-v54-documents-pro';
+  var VERSION='54.1.0-documents-pro-repair';
+  var SITE_VERSION='54_1repair';
+  var ROOT_ID='hp-v54-1-repair';
   var PREVIEW_MODAL_ID='hp-v54-doc-preview';
   var STATUS={draft:'Draft',sent:'Sent',paid:'Paid',cancelled:'Cancelled'};
   var booted=false;
@@ -74,7 +74,7 @@
   function exportJson(){download('haydar-pack-v54-documents.json',JSON.stringify({exportedAt:nowIso(),documents:docs()},null,2),'application/json;charset=utf-8')}
   function injectStyle(){if(byId('hp-v54-style'))return; var st=document.createElement('style'); st.id='hp-v54-style'; st.textContent='.hp-v54-docs-pro{margin:18px 0;padding:18px;border:1px solid #dbe3ee;border-radius:18px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04)}.hp-v54-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.hp-v54-head h2{margin:3px 0;font-size:24px}.hp-v54-head p{margin:0;color:#5b6b83;font-weight:900}.hp-v54-tools{display:flex;gap:8px;flex-wrap:wrap}.hp-v54-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}.hp-v54-stats div{border:1px solid #e0e7f0;border-radius:14px;padding:10px;background:#f8fafc}.hp-v54-stats b{display:block;font-size:24px}.hp-v54-stats span{font-weight:900;color:#667085}.hp-v54-doc-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;border:1px solid #e6edf5;border-radius:14px;padding:10px;margin-bottom:8px}.hp-v54-doc-row b{font-size:16px}.hp-v54-doc-row span{display:block;color:#5b6b83;font-weight:900}.hp-v54-status{border:2px solid #111;border-radius:999px;padding:5px 10px;font-weight:900;color:#000!important}.hp-v54-status.ok{background:#d9fbe8}.hp-v54-status.blue{background:#dbeafe}.hp-v54-status.bad{background:#ffe0e0}.hp-v54-status.draft{background:#fff2c2}.hp-v54-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.hp-v54-actions select{border:2px solid #000;border-radius:10px;font-weight:900;padding:7px;background:#fff}@media(max-width:720px){.hp-v54-head{display:block}.hp-v54-tools{margin-top:10px}.hp-v54-stats{grid-template-columns:1fr 1fr}.hp-v54-doc-row{grid-template-columns:1fr}.hp-v54-actions .btn,.hp-v54-actions select{width:100%;min-height:42px}}'; document.head.appendChild(st)}
   function wrapReports(){var old=window.renderReports; if(typeof old==='function'&&!old.__hpV54Docs){var w=function(){var r=old.apply(this,arguments); setTimeout(renderCenter,60); return r}; w.__hpV54Docs=true; w.__hpOriginal=old; window.renderReports=w}}
-  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V54 Documents Pro loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
+  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V54.1 Documents Pro loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
   window.printSelectedClientQuote=function(cid){clientDoc(cid,'quote')};
   window.printSelectedClientInvoice=function(cid){clientDoc(cid,'invoice')};
   window.printSelectedClientStatement=function(cid){clientStatement(cid)};

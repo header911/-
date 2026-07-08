@@ -30,4 +30,4 @@ GitHub فقط. لا يوجد تعديل Apps Script.
 
 ## رابط التشغيل
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=54docspro`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=54_1repair`

@@ -14,4 +14,4 @@
 ## ملاحظات
 - لا يوجد تعديل Apps Script في هذه النسخة.
 - آخر Apps Script مطلوب هو V50 Backup Center Pro.
-- افتح النسخة من: `?v=54docspro`.
+- افتح النسخة من: `?v=54_1repair`.

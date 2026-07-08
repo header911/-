@@ -19,11 +19,11 @@
 
 - `index.html` — ترتيب تحميل الملفات.
 - `assets/css/styles.css` — التصميم، ويتضمن تنسيقات V52 و V53.3.
-- `sw.js` — كاش PWA محدث على `v=54docspro`.
+- `sw.js` — كاش PWA محدث على `v=54_1repair`.
 - `manifest.webmanifest` — إعدادات PWA.
 - `config.js` — رابط Apps Script الحالي.
 
 
 ## V53.3 Notes
-- النسخة الحالية: `?v=54docspro`.
+- النسخة الحالية: `?v=54_1repair`.
 - V53.3 يصلح ظهور التقارير، زر Back في الموبايل، إزالة الزر العائم، وتغيير رابط Apps Script من شاشة المزامنة.
