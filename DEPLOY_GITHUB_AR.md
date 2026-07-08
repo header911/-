@@ -1,10 +1,15 @@
-# رفع GitHub - V53.2
+# رفع GitHub - V53.3
 
-1. فك ضغط ملف V53.2.
+1. فك ضغط ملف V53.3.
 2. ارفع كل المحتويات إلى Root الريبو.
 3. تأكد أن `index.html` في أول مستوى.
 4. تأكد أن فولدر `assets` مرفوع كامل.
 5. افتح:
-   `https://headersobhy-code.github.io/Haydar-Pack/?v=53_2postaudit`
+   `https://headersobhy-code.github.io/Haydar-Pack/?v=54docspro`
 
-Apps Script لا يتعدل في V53.2.
+Apps Script لا يتعدل في V53.3.
+
+
+## V53.3 Notes
+- النسخة الحالية: `?v=54docspro`.
+- V53.3 يصلح ظهور التقارير، زر Back في الموبايل، إزالة الزر العائم، وتغيير رابط Apps Script من شاشة المزامنة.

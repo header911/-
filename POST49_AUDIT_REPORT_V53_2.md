@@ -1,4 +1,4 @@
-# Haydar Pack V53.2 — Post V49 Audit Rebuild
+# Haydar Pack V53.3 — Post V49 Audit Rebuild
 
 تمت مراجعة الإصدارات من بعد V49 وتجميعها في Build واحد فوق V53.1.
 
@@ -11,7 +11,7 @@
 | V51 Mobile UX Upgrade | `assets/js/08-mobile-ux.js` | موجود مع Alias صحيح V51 |
 | V52 Reports Pro | `assets/js/09-reports-pro.js` | موجود |
 | V53 Finance Insights | `assets/js/10-reports-finance-insights.js` | موجود |
-| V53.2 Post-V49 Audit Finalizer | `assets/js/11-post49-audit-finalizer.js` | جديد |
+| V53.3 Post-V49 Audit Finalizer | `assets/js/11-post49-audit-finalizer.js` | جديد |
 
 ## الإصلاح الأساسي
 
