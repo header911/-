@@ -1,11 +1,11 @@
-/* ===== V52 Mobile UX Upgrade =====
+/* ===== V51 Mobile UX Upgrade =====
    Frontend-only patch. Keeps V50 Backup/Sync/Data Guard untouched.
    Adds mobile quick actions, safer drawer close, mobile back helper and touch polish.
 */
 (function(){
   'use strict';
   var VERSION='52.0.0-reports-pro';
-  var SITE_VERSION='53financeinsights';
+  var SITE_VERSION='53_2postaudit';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
@@ -33,7 +33,7 @@
   function injectStyle(){
     if($('hp-v52-style'))return;
     var st=document.createElement('style'); st.id='hp-v52-style';
-    st.textContent='\n/* V52 Mobile UX */\n'
+    st.textContent='\n/* V51 Mobile UX */\n'
       +'@media(max-width:720px){'
       +'html,body{overscroll-behavior-y:contain!important;-webkit-tap-highlight-color:transparent!important}'
       +'.app{min-height:100dvh!important}'
@@ -118,7 +118,7 @@
     }
   }
   function setupBackHelper(){
-    if(window.__HP_V52_BACK_HELPER)return; window.__HP_V52_BACK_HELPER=true;
+    if(window.__HP_V51_BACK_HELPER)return; window.__HP_V51_BACK_HELPER=true;
     window.hpV52MobileBack=function(){
       if(closeTopDrawer()){setTimeout(enhanceOpenDrawers,80);return true;}
       if((window.activePage||'home')!=='home'&&typeof window.showPage==='function'){
@@ -131,12 +131,13 @@
     if(booted)return;booted=true;
     injectStyle();ensureFab();ensurePagePill();wrapNavAndDrawers();setupBackHelper();enhanceOpenDrawers();
     setInterval(function(){if(isMobile()){ensurePagePill();enhanceOpenDrawers()}},1800);
-    try{console.log('Haydar Pack V52 Mobile UX loaded',VERSION,SITE_VERSION)}catch(e){}
+    try{console.log('Haydar Pack V51 Mobile UX loaded',VERSION,SITE_VERSION)}catch(e){}
   }
   document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,600)});
   window.addEventListener('load',function(){setTimeout(boot,900)});
   window.addEventListener('popstate',function(){setTimeout(function(){ensurePagePill();enhanceOpenDrawers()},120)},true);
   setTimeout(boot,1800);
-  window.HP_V52_MOBILE_UX={version:VERSION,siteVersion:SITE_VERSION,back:function(){return window.hpV52MobileBack&&window.hpV52MobileBack()},refresh:function(){ensurePagePill();enhanceOpenDrawers()}};
+  window.HP_V51_MOBILE_UX={version:VERSION,siteVersion:SITE_VERSION,back:function(){return window.hpV52MobileBack&&window.hpV52MobileBack()},refresh:function(){ensurePagePill();enhanceOpenDrawers()}};
+  window.HP_V52_MOBILE_UX=window.HP_V51_MOBILE_UX;
 })();
-/* ===== END V52 Mobile UX Upgrade ===== */
+/* ===== END V51 Mobile UX Upgrade ===== */

@@ -1,4 +1,4 @@
-# V53 — Finance Insights & Drilldown
+# V53.2 — Finance Insights Visible Fix
 
 ## نوع التحديث
 GitHub فقط. لا يوجد تعديل Apps Script.
@@ -30,4 +30,4 @@ GitHub فقط. لا يوجد تعديل Apps Script.
 
 ## رابط التشغيل
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=53financeinsights`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=53_2postaudit`

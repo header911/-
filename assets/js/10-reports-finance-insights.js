@@ -2,8 +2,8 @@
    GitHub-only upgrade. Adds cash-flow, follow-up and drilldown reports above V52 Reports Pro. */
 (function(){
   'use strict';
-  var VERSION='53.0.0-finance-insights';
-  var SITE_VERSION='53financeinsights';
+  var VERSION='53.2.0-post49-audit-rebuild';
+  var SITE_VERSION='53_2postaudit';
   var ROOT_ID='hp-v53-finance-insights';
   var MODAL_ID='hp-v53-drilldown-modal';
 
@@ -118,7 +118,17 @@
     html+='</div></div>';
     return html;
   }
-  function ensureRoot(){var reports=byId('pg-reports'); if(!reports)return null; var root=byId(ROOT_ID); if(!root){root=document.createElement('div'); root.id=ROOT_ID; reports.appendChild(root)} return root}
+  function ensureRoot(){
+    var reports=byId('pg-reports'); if(!reports)return null;
+    var root=byId(ROOT_ID);
+    if(!root){
+      root=document.createElement('div'); root.id=ROOT_ID;
+      /* V53.2: show finance insights ABOVE the V52 report, so the user can see it immediately. */
+      var v52=byId('hp-v52-reports-pro');
+      if(v52 && v52.parentNode===reports) reports.insertBefore(root,v52); else reports.insertBefore(root,reports.firstChild);
+    }
+    return root;
+  }
   function render(){try{var r=ensureRoot(); if(r)r.innerHTML=buildHtml()}catch(e){console.error('V53 finance render failed',e); try{if(window.HP_V50_STABILITY&&HP_V50_STABILITY.log)HP_V50_STABILITY.log('V53_REPORTS_ERROR',String(e&&e.message||e),'render')}catch(_){}}}
   function ensureModal(){var m=byId(MODAL_ID); if(m)return m; m=document.createElement('div'); m.id=MODAL_ID; m.className='hp-v53-modal'; m.innerHTML='<div class="hp-v53-modal-card"><button class="hp-v53-close" onclick="HP_V53_FINANCE.close()">×</button><div id="hp-v53-modal-body"></div></div>'; document.body.appendChild(m); return m}
   function line(label,val,cls){return '<div class="hp-v53-detail-line '+(cls||'')+'"><span>'+esc(label)+'</span><b>'+esc(val)+'</b></div>'}
@@ -150,7 +160,23 @@
   function download(name,rows){var csv='\ufeff'+rows.map(function(r){return r.map(csvEscape).join(',')}).join('\n'); var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href); a.remove()},500)}
   function exportCsv(type){var s=periodSummary(); if(type==='followup')return download('haydar-pack-v53-followup.csv',[['Type','Name','Balance','Orders','Last date']].concat(followupClients().map(function(r){return ['Client',r.name,r.balance,r.orders,r.last]}),followupFactories().map(function(r){return ['Factory',r.name,r.balance,r.orders,r.last]}))); if(type==='cashflow')return download('haydar-pack-v53-cashflow.csv',[['Month','Orders','Sales','Cash in','Factory paid','Expenses','Net cash','Profit']].concat(monthlyCashFlow().map(function(r){return [r.id,r.orders,r.sales,r.cashIn,r.factoryPaid,r.expenses,r.net,r.profit]}))); return download('haydar-pack-v53-summary.csv',[['Metric','Value'],['Cash in',s.cashIn],['Factory paid',s.factoryPaid],['Expenses',s.exp],['Net cash',s.netCash],['Client debt',s.clientDebt],['Factory debt',s.factoryDebt],['Profit',s.profit]]);}
   function exportEntity(type,id){var rows=[]; if(type==='client'){rows=[['Date','Order code','Status','Sales','Profit']].concat(arr('orders').filter(function(o){return o.clientId===id}).map(function(o){return [o.date||'',o.code||'',normalizeStatus(o.status),orderClient(o),orderProfit(o)]})); return download('haydar-pack-v53-client-'+id+'.csv',rows)} if(type==='factory'){rows=[['Date','Order code','Client','Factory cost','Profit']].concat(arr('orders').filter(function(o){return o.factoryId===id}).map(function(o){return [o.date||'',o.code||'',clientName(o.clientId),orderFactory(o),orderProfit(o)]})); return download('haydar-pack-v53-factory-'+id+'.csv',rows)} if(type==='month'){rows=[['Date','Order code','Client','Factory','Sales','Factory cost','Profit']].concat(arr('orders').filter(function(o){return monthOf(o)===id}).map(function(o){return [o.date||'',o.code||'',clientName(o.clientId),factoryName(o.factoryId),orderClient(o),orderFactory(o),orderProfit(o)]})); return download('haydar-pack-v53-month-'+id+'.csv',rows)}}
-  function hook(){if(window.__HP_V53_FINANCE_HOOKED)return; window.__HP_V53_FINANCE_HOOKED=true; var old=window.renderReports; window.renderReports=function(){if(typeof old==='function')old.apply(this,arguments); render()}; setTimeout(function(){try{if((window.activePage||'')==='reports')render()}catch(e){}},550)}
+  function hook(){
+    if(window.__HP_V53_FINANCE_HOOKED)return;
+    window.__HP_V53_FINANCE_HOOKED=true;
+    var old=window.renderReports;
+    window.renderReports=function(){
+      if(typeof old==='function')old.apply(this,arguments);
+      render();
+    };
+    /* V53.2: repeated light check after page load/page switch, because some mobiles keep old report DOM cached. */
+    var tries=0;
+    var t=setInterval(function(){
+      tries++;
+      try{ if((window.activePage||'')==='reports') render(); }catch(e){}
+      if(tries>=10) clearInterval(t);
+    },450);
+    setTimeout(function(){try{render()}catch(e){}},900);
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hook); else hook();
   window.HP_V53_FINANCE={version:VERSION,siteVersion:SITE_VERSION,refresh:render,open:open,close:close,exportCsv:exportCsv,exportEntity:exportEntity,summary:periodSummary};
 })();
