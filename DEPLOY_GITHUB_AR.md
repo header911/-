@@ -5,11 +5,11 @@
 3. تأكد أن `index.html` في أول مستوى.
 4. تأكد أن فولدر `assets` مرفوع كامل.
 5. افتح:
-   `https://headersobhy-code.github.io/Haydar-Pack/?v=54_1repair`
+   `https://headersobhy-code.github.io/Haydar-Pack/?v=54_2litefix`
 
 Apps Script لا يتعدل في V53.3.
 
 
 ## V53.3 Notes
-- النسخة الحالية: `?v=54_1repair`.
+- النسخة الحالية: `?v=54_2litefix`.
 - V53.3 يصلح ظهور التقارير، زر Back في الموبايل، إزالة الزر العائم، وتغيير رابط Apps Script من شاشة المزامنة.

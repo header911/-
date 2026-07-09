@@ -1,9 +1,9 @@
-/* Haydar Pack V54.1 - Post V49 Audit + Backend Link Settings
+/* Haydar Pack V54.2 - Post V49 Audit + Backend Link Settings
    Final frontend tester: verifies post-V49 modules through V54, forces reports order, injects Apps Script /exec editor in sync screen. */
 (function(){
   'use strict';
-  var VERSION='54.1.0-documents-pro-repair';
-  var SITE_VERSION='54_1repair';
+  var VERSION='54.2.0-documents-pro-repair';
+  var SITE_VERSION='54_2litefix';
   var REPORT_AUDIT_ID='hp-v533-post49-audit-strip';
   var BACKEND_PANEL_ID='hp-v533-backend-panel';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
@@ -15,7 +15,7 @@
     {key:'mobile',label:'V51/V53.3 Mobile Back',global:'HP_V51_MOBILE_UX',alt:'HP_V52_MOBILE_UX'},
     {key:'reports',label:'V52 Reports Pro',global:'HP_V52_REPORTS_PRO'},
     {key:'finance',label:'V53.4 Finance Repair',global:'HP_V53_FINANCE'},
-    {key:'documents',label:'V54.1 Documents Pro',global:'HP_V54_DOCS'}
+    {key:'documents',label:'V54.2 Documents Pro',global:'HP_V54_DOCS'}
   ];
   function byId(id){return document.getElementById(id)}
   function q(sel,root){return (root||document).querySelector(sel)}
@@ -32,7 +32,7 @@
   function saveBackendFromInput(){var inp=byId('hp-v533-backend-url'); if(!inp)return; if(confirm('سيتم تغيير رابط Apps Script المستخدم للمزامنة على هذا الجهاز. تأكد أنك عملت Deploy صحيح. تكمل؟'))setBackend(inp.value)}
   function testBackend(){currentBackend(); var line=byId('hp-v533-backend-test'); if(line)line.textContent='جاري اختبار الاتصال...'; try{if(window.HP_V37_SYNC&&typeof HP_V37_SYNC.checkMeta==='function'){HP_V37_SYNC.checkMeta(true).then(function(res){if(line)line.textContent=res?'تم الاتصال بنجاح أو تم قراءة الحالة.':'لم يصل رد واضح، راجع الرابط أو الصلاحيات.'}).catch(function(e){if(line)line.textContent=e.message||'فشل الاختبار'});return}}catch(e){} if(line)line.textContent='تعذر تشغيل اختبار المزامنة الآن، لكن الرابط محفوظ.'}
   function injectStyle(){if(byId('hp-v533-style'))return; var st=document.createElement('style'); st.id='hp-v533-style'; st.textContent='\n#'+REPORT_AUDIT_ID+'{margin:0 0 14px 0;padding:12px 14px;border:3px solid #0f5f2f;border-radius:18px;background:#e9fff1;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;direction:rtl;font-weight:900}\n#'+REPORT_AUDIT_ID+'.bad{border-color:#b91c1c;background:#fff1f1}\n#'+REPORT_AUDIT_ID+' small{display:block;color:#475569;margin-top:4px;font-weight:800}.hp-v533-audit-items{display:flex;gap:8px;flex-wrap:wrap}.hp-v533-audit-items span{border:2px solid #d0d7e2;border-radius:999px;padding:7px 10px;background:#fff}.hp-v533-audit-items span.ok{border-color:#15803d;color:#166534}.hp-v533-audit-items span.bad{border-color:#b91c1c;color:#b91c1c}\n#'+BACKEND_PANEL_ID+'{border:4px solid #000;border-radius:18px;background:#fff7d8;padding:14px;margin:12px 0;box-shadow:0 3px 0 #000;direction:rtl}#'+BACKEND_PANEL_ID+' h3{margin:0 0 6px;font-size:20px}#'+BACKEND_PANEL_ID+' input{width:100%;direction:ltr;text-align:left;border:3px solid #000;border-radius:14px;padding:10px;font-weight:800;font-family:monospace;box-sizing:border-box;background:#fff}#hp-v533-backend-test{font-weight:900;margin-top:8px;color:#334155}\n.hp-v53-alert{border:3px solid #000;border-radius:16px;padding:10px;margin:8px 0;background:#fff;display:grid;gap:4px}.hp-v53-alert b{font-size:17px}.hp-v53-alert.good{border-color:#15803d;background:#edfff2}.hp-v53-alert.warn{border-color:#a16207;background:#fff7d6}.hp-v53-alert.bad{border-color:#b91c1c;background:#fff1f1}\n@media(max-width:700px){#'+REPORT_AUDIT_ID+'{font-size:13px}.hp-v533-audit-items span{padding:6px 8px}}\n'; document.head.appendChild(st)}
-  function auditHtml(){var rows=moduleStatus(), ok=rows.every(function(r){return r.ok}); return '<div id="'+REPORT_AUDIT_ID+'" class="'+(ok?'ok':'bad')+'"><div><b>فحص نسخة V54.1</b><small>تأكيد وجود كل ما بعد V49 حتى Documents Pro بدون مسح القديم</small></div><div class="hp-v533-audit-items">'+rows.map(function(r){return '<span class="'+(r.ok?'ok':'bad')+'">'+(r.ok?'✓':'!')+' '+esc(r.label)+'</span>'}).join('')+'</div></div>'}
+  function auditHtml(){var rows=moduleStatus(), ok=rows.every(function(r){return r.ok}); return '<div id="'+REPORT_AUDIT_ID+'" class="'+(ok?'ok':'bad')+'"><div><b>فحص نسخة V54.2</b><small>تأكيد وجود كل ما بعد V49 حتى Documents Pro بدون مسح القديم</small></div><div class="hp-v533-audit-items">'+rows.map(function(r){return '<span class="'+(r.ok?'ok':'bad')+'">'+(r.ok?'✓':'!')+' '+esc(r.label)+'</span>'}).join('')+'</div></div>'}
   function placeAuditStrip(){injectStyle(); var reports=byId('pg-reports'); if(!reports)return; var old=byId(REPORT_AUDIT_ID); if(old)old.remove(); var holder=document.createElement('div');holder.innerHTML=auditHtml(); reports.insertBefore(holder.firstChild,reports.firstChild)}
   function forceReportsOrder(){
     var reports=byId('pg-reports'); if(!reports)return;

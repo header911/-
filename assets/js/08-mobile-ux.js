@@ -1,9 +1,9 @@
-/* Haydar Pack V54.1 - Mobile Back Guard Repair
-   Removes floating button completely and captures Android/iOS back before the browser exits. */
+/* Haydar Pack V54.2 - Mobile Back Guard Lite Fix
+   Removes floating button completely and keeps a stronger history buffer for Android/iOS back. */
 (function(){
   'use strict';
-  var VERSION='54.1.0-mobile-back-repair';
-  var SITE_VERSION='54_1repair';
+  var VERSION='54.2.0-mobile-back-lite-fix';
+  var SITE_VERSION='54_2litefix';
   var booted=false, stack=[];
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
   function isMobile(){try{return window.matchMedia('(max-width: 760px)').matches}catch(e){return window.innerWidth<=760}}
@@ -16,10 +16,10 @@
   function closeOverlay(){var x=currentOverlay();if(!x)return false;try{if(x.classList.contains('overlay')&&x.id&&typeof window.closeDrawer==='function')window.closeDrawer(x.id);else{x.classList.remove('active');x.classList.remove('open')}}catch(e){try{x.classList.remove('active');x.classList.remove('open')}catch(_){}}setTimeout(updateDrawers,80);return true}
   function safeShow(name){try{if(typeof window.showPage==='function')window.showPage(name,btnFor(name));else window.activePage=name}catch(e){try{window.activePage=name}catch(_){}}try{window.scrollTo({top:0,behavior:'auto'})}catch(e){}}
   function backInside(){removeFloating();if(closeOverlay())return true;if(!stack.length)stack=['home'];if(stack.length>1){stack.pop();safeShow(stack[stack.length-1]||'home');return true}if(page()!=='home'){stack=['home'];safeShow('home');return true}safeShow('home');toast('أنت في الصفحة الرئيسية');return true}
-  function pushTrap(){if(!isMobile())return;try{history.pushState({hpBackTrap:true,page:page(),t:Date.now()},'',location.href)}catch(e){}}
+  function pushTrap(){if(!isMobile())return;try{for(var i=0;i<2;i++){history.pushState({hpBackTrap:true,page:page(),t:Date.now(),i:i},'',location.href)}}catch(e){}}
   function wrapShowPage(){var old=window.showPage;if(typeof old!=='function'||old.__hpV541)return;var wrapped=function(name,btn){var before=page();var r=old.apply(this,arguments);var after=name||page();if(after&&after!==before){if(!stack.length)stack=[before||'home'];stack.push(after);if(stack.length>40)stack=stack.slice(-40);pushTrap()}setTimeout(function(){removeFloating();updateDrawers()},80);return r};wrapped.__hpV541=true;wrapped.__hpOriginal=old;window.showPage=wrapped}
   function updateDrawers(){removeFloating();qa('.overlay.open').forEach(function(ov){var drawer=ov.querySelector('.drawer')||ov;if(!drawer||drawer.querySelector('.hp-v541-closebar'))return;var bar=document.createElement('div');bar.className='hp-v541-closebar';bar.innerHTML='<button class="btn" type="button">← رجوع</button><div class="hp-v541-title">رجوع</div>';bar.querySelector('button').onclick=function(e){e.preventDefault();closeOverlay()};drawer.insertBefore(bar,drawer.firstChild)})}
-  function boot(){if(booted)return;booted=true;injectStyle();removeFloating();stack=[page()||'home'];wrapShowPage();try{history.replaceState({hpBackRoot:true,page:page()},'',location.href);pushTrap()}catch(e){}window.addEventListener('popstate',function(ev){try{ev.preventDefault();ev.stopImmediatePropagation()}catch(e){}setTimeout(function(){backInside();pushTrap()},10)},true);setInterval(function(){if(isMobile()){removeFloating();updateDrawers()}},1200);try{console.log('Haydar Pack Mobile Back Guard V54.1 loaded')}catch(e){}}
+  function boot(){if(booted)return;booted=true;injectStyle();removeFloating();stack=[page()||'home'];wrapShowPage();try{history.replaceState({hpBackRoot:true,page:page()},'',location.href);pushTrap()}catch(e){}window.addEventListener('popstate',function(ev){try{ev.preventDefault();ev.stopImmediatePropagation()}catch(e){}setTimeout(function(){backInside();pushTrap()},10)},true);setInterval(function(){if(isMobile()){removeFloating();updateDrawers()}},1200);try{console.log('Haydar Pack Mobile Back Guard V54.2 loaded')}catch(e){}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,250)});else setTimeout(boot,250);window.addEventListener('load',function(){setTimeout(boot,300)});
   window.HP_V51_MOBILE_UX=window.HP_V52_MOBILE_UX={version:VERSION,siteVersion:SITE_VERSION,back:backInside,refresh:function(){removeFloating();updateDrawers()},floatingRemoved:true};
 })();

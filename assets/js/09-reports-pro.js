@@ -1,9 +1,8 @@
-/* Haydar Pack V52 - Reports Pro
-   GitHub-only upgrade. Adds advanced management reports without changing data or Apps Script. */
+/* Haydar Pack V52 Reports Pro - V54.2 event-safe buttons */
 (function(){
   'use strict';
   var VERSION='52.0.0-reports-pro';
-  var SITE_VERSION='54_1repair';
+  var SITE_VERSION='54_2litefix';
   var ROOT_ID='hp-v52-reports-pro';
 
   function byId(id){return document.getElementById(id)}
@@ -18,6 +17,9 @@
   function count(v){
     try{return n(v).toLocaleString('ar-EG',{maximumFractionDigits:0})}catch(e){return String(n(v))}
   }
+  function data(v){return esc(String(v==null?'':v))}
+  function actionBtn(kind,id,label,cls){return '<button type="button" class="btn small '+esc(cls||'')+'" data-hp-v52-action="'+esc(kind)+'" data-hp-v52-id="'+data(id)+'">'+esc(label||'فتح')+'</button>'}
+  function csvBtn(type,label,cls){return '<button type="button" class="btn small '+esc(cls||'')+'" data-hp-v52-csv="'+esc(type)+'">'+esc(label||'CSV')+'</button>'}
   function dateOf(o){return String((o&&o.date)||'')}
   function monthOf(o){var d=dateOf(o); return /^\d{4}-\d{2}/.test(d)?d.slice(0,7):''}
   function monthLabel(m){
@@ -173,21 +175,21 @@
     var summary=makeSummary(), clients=clientsReport(summary.orders), factories=factoriesReport(summary.orders), statuses=statusReport(summary.orders), months=monthlyReport();
     var debtRows=arr('clients').map(function(c){return {id:c.id,name:c.name||'؟',balance:clientBalance(c.id),orders:arr('orders').filter(function(o){return o.clientId===c.id}).length}}).filter(function(r){return r.balance>0});
     var html='<div class="hp-v52-head"><div><div class="sec-label">Reports Pro V52</div><h2>تقارير الإدارة المتقدمة</h2><p>الفترة الحالية: '+esc(activePeriod()==='month'?'شهر '+monthLabel(activeMonth()):'كل البيانات / حسب اختيار الفلاتر')+'</p></div><div class="hp-v52-tools">'
-      +'<button class="btn small blue" onclick="HP_V52_REPORTS_PRO.exportCsv(\'summary\')"><i class="ti ti-download"></i> ملخص CSV</button>'
-      +'<button class="btn small" onclick="HP_V52_REPORTS_PRO.exportCsv(\'clients\')">عملاء CSV</button>'
-      +'<button class="btn small" onclick="HP_V52_REPORTS_PRO.exportCsv(\'orders\')">أوردرات CSV</button>'
+      +csvBtn('summary','ملخص CSV','blue')
+      +csvBtn('clients','عملاء CSV','')
+      +csvBtn('orders','أوردرات CSV','')
       +'</div></div>';
     html+=cards(summary);
     html+='<div class="hp-v52-grid">';
     html+=tableBlock('أعلى العملاء مبيعات','حسب الفترة المختارة',topRows(clients,'sales',8),[
       {label:'العميل',key:'name'},{label:'مبيعات',val:function(r){return money(r.sales)},cls:'good'},{label:'مدفوع',val:function(r){return money(r.paid)}},{label:'ربح',val:function(r){return money(r.profit)},cls:function(r){return statusClass(r.profit)}},{label:'رصيد حالي',val:function(r){return money(r.balance)},cls:function(r){return r.balance>0?'bad':'good'}}
-    ],function(r){return '<button class="btn small" onclick="openClientDetail(\''+esc(r.id)+'\')">تفاصيل</button>'},'لا توجد مبيعات عملاء');
+    ],function(r){return actionBtn('client',r.id,'تفاصيل','')},'لا توجد مبيعات عملاء');
     html+=tableBlock('أعلى العملاء مديونية','الأرصدة الحالية الإجمالية',topRows(debtRows,'balance',8),[
       {label:'العميل',key:'name'},{label:'الرصيد',val:function(r){return money(r.balance)},cls:'bad'},{label:'عدد الأوردرات',val:function(r){return count(r.orders)}}
-    ],function(r){return '<button class="btn small" onclick="openClientDetail(\''+esc(r.id)+'\')">تحصيل</button>'},'لا توجد مديونيات عملاء');
+    ],function(r){return actionBtn('client',r.id,'تحصيل','')},'لا توجد مديونيات عملاء');
     html+=tableBlock('تقرير المصانع','تكلفة ومدفوعات المصانع حسب الفترة',topRows(factories,'cost',8),[
       {label:'المصنع',key:'name'},{label:'تكلفة',val:function(r){return money(r.cost)},cls:'bad'},{label:'محول',val:function(r){return money(r.paid)}},{label:'رصيد حالي',val:function(r){return money(r.balance)},cls:function(r){return r.balance>0?'bad':'good'}},{label:'ربح أوردراته',val:function(r){return money(r.profit)},cls:function(r){return statusClass(r.profit)}}
-    ],function(r){return '<button class="btn small" onclick="openFactoryDetail(\''+esc(r.id)+'\')">تفاصيل</button>'},'لا توجد بيانات مصانع');
+    ],function(r){return actionBtn('factory',r.id,'تفاصيل','')},'لا توجد بيانات مصانع');
     html+=tableBlock('حالات الأوردرات','عدد وقيمة كل حالة',topRows(statuses,'orders',10),[
       {label:'الحالة',key:'name'},{label:'عدد',val:function(r){return count(r.orders)}},{label:'مبيعات',val:function(r){return money(r.sales)},cls:'good'},{label:'ربح',val:function(r){return money(r.profit)},cls:function(r){return statusClass(r.profit)}}
     ],null,'لا توجد أوردرات');
@@ -229,8 +231,9 @@
     rows=[['Metric','Value'],['Sales',summary.sales],['Factory cost',summary.cost],['Expenses',summary.exp],['Profit',summary.profit],['Orders',summary.orders.length],['Clients',summary.clients],['Factories',summary.factories]];
     return download('haydar-pack-v52-summary.csv',rows);
   }
+  function bindEvents(){if(window.__HP_V542_V52_EVENTS)return;window.__HP_V542_V52_EVENTS=true;document.addEventListener('click',function(ev){var b=ev.target&&ev.target.closest?ev.target.closest('[data-hp-v52-action],[data-hp-v52-csv]'):null;if(!b)return;try{ev.preventDefault();ev.stopPropagation()}catch(e){}var csv=b.getAttribute('data-hp-v52-csv');if(csv)return exportCsv(csv);var kind=b.getAttribute('data-hp-v52-action'), id=b.getAttribute('data-hp-v52-id')||'';try{if(kind==='client'&&typeof window.openClientDetail==='function')return window.openClientDetail(id);if(kind==='factory'&&typeof window.openFactoryDetail==='function')return window.openFactoryDetail(id)}catch(e){console.error('V52 action failed',e)}})}
   function hookReports(){
-    if(window.__HP_V52_REPORTS_HOOKED)return; window.__HP_V52_REPORTS_HOOKED=true;
+    if(window.__HP_V52_REPORTS_HOOKED)return; window.__HP_V52_REPORTS_HOOKED=true; bindEvents();
     var old=window.renderReports;
     window.renderReports=function(){
       if(typeof old==='function')old.apply(this,arguments);

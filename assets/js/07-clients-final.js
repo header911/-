@@ -211,7 +211,7 @@
 (function(){
   'use strict';
   var VERSION='52.0.0-reports-pro';
-  var SITE_VERSION='54_1repair';
+  var SITE_VERSION='54_2litefix';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
@@ -314,7 +314,7 @@
 (function(){
   'use strict';
   var VERSION='52.0.0-reports-pro';
-  var SITE_VERSION='54_1repair';
+  var SITE_VERSION='54_2litefix';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}
