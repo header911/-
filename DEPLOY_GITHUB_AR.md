@@ -1,11 +1,10 @@
-# رفع V55.3 على GitHub
+# رفع V57.4 على GitHub
 
-1. فك ضغط الملف.
-2. ارفع المحتويات على GitHub بنفس الهيكلة.
-3. لا ترفع ZIP نفسه.
-4. لا تعدل Apps Script.
-5. افتح الرابط:
+1. فك ضغط ZIP.
+2. ارفع كل المحتويات على GitHub بنفس الهيكلة.
+3. تأكد أن فولدر `assets` مرفوع كامل.
+4. افتح:
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=55_3docstable`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_4legacyclean`
 
-بعد الفتح: ادخل المزامنة والحماية وشغّل فحص V55.3 Regression Gate.
+لا تعدل Apps Script.

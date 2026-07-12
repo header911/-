@@ -4,7 +4,6 @@
 
 
 
-/* ===== BEGIN SOURCE: 01-core.js ===== */
 
 /* Haydar Pack V33 Stage 5 split file: 01-core.js. Preserves execution order from stable version. */
 // ================= DATA / HELPERS =================
@@ -1228,7 +1227,7 @@ function openOrderDetail(id){
 // ================= V8 DATA SAFETY + LOCAL GOOGLE DRIVE FOLDER BACKUP =================
 (function(){
   'use strict';
-  var HP_APP_VERSION='52.0.0-reports-pro';
+  var HP_APP_VERSION='57.4.0-internal-legacy-cleanup';
   var HP_SCHEMA_VERSION=10;
   var HP_LOCAL_KEY='hayder_bags_app';
   var HP_CURRENT_FILE='HayderPack_Current_Data.json';
@@ -1426,16 +1425,9 @@ function openOrderDetail(id){
     var rawBefore='';try{rawBefore=localStorage.getItem(HP_LOCAL_KEY)||'';if(rawBefore){var old=JSON.parse(rawBefore),oldDS=(old&&old.settings&&old.settings.dataSafety)||{},oldVer=oldDS.appVersion||('legacy-v'+String(Number(old.version)||0));if(oldVer!==HP_APP_VERSION)hpPendingPreUpdateText=JSON.stringify({format:'HayderPackBackup',formatVersion:1,appVersion:oldVer,schemaVersion:Number(old.version)||0,exportedAt:hpNow(),revision:Number(oldDS.revision)||0,updatedAt:oldDS.lastSavedAt||'',counts:hpCounts(old),checksum:hpHash(JSON.stringify(old)),data:old},null,2)}}catch(e){console.warn(e)}
     hpOldLoad();
     try{hpEnsureShape(DB);hpPrepareMetadata();var r=hpValidateDatabase(DB);if(r.ok){var json=JSON.stringify(DB);localStorage.setItem(HP_LOCAL_KEY,json);hpLastValidJson=json;hpScheduleSnapshot(json,'startup')}else{hpLastValidJson=rawBefore||'';if(typeof showSafeError==='function')showSafeError('تم فتح الداتا للمراجعة، لكن بها أخطاء ولن يتم حفظ تعديل جديد قبل إصلاحها')}}catch(e){console.error(e);if(typeof showSafeError==='function')showSafeError('تعذر تهيئة طبقة حماية البيانات')}
-    /* V9 cloud edition: local folder initialization disabled */
   };
 })();
 
-
-/* V50 final cleanup: removed obsolete V9 google.script.run cloud sync block.
-   Current sync is owned by assets/js/04-sync-import.js and protected by 06-data-protection-images-backup.js. */
-
-/* V50 final cleanup: removed old client render/sort override.
-   Clients page is owned by assets/js/07-clients-final.js. */
 
 /* ===== DESKTOP DRAWER BACK BAR V10 ===== */
 (function(){
@@ -1475,9 +1467,6 @@ function openOrderDetail(id){
 })();
 
 
-/* V50 final cleanup: removed obsolete V10 PWA/offline sync bridge.
-   Local-first Apps Script sync is owned by assets/js/04-sync-import.js. */
-
 /* V37: legacy boot disabled to prevent old Google download from overwriting local unsynced changes. */
 (function(){
   try{
@@ -1493,11 +1482,9 @@ function openOrderDetail(id){
 window.HP_V37_LEGACY_BOOT_DISABLED=true;
 
 
-/* ===== END SOURCE: 01-core.js ===== */
 
 
 
-/* ===== BEGIN SOURCE: 02-pwa-register.js ===== */
 
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
@@ -1536,4 +1523,3 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 })();
 
 
-/* ===== END SOURCE: 02-pwa-register.js ===== */

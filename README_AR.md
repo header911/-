@@ -1,11 +1,9 @@
-# Haydar Pack V55.3
+# Haydar Pack V57.4
 
-نسخة تثبيت واختبار Regression مبنية على V55.1 Docs Root Fix.
+نسخة **Internal Legacy Cleanup** مبنية على V57.3 المستقرة.
 
-الغرض: تثبيت النسخة الحالية قبل V56 Capital Intelligence Dashboard.
+رابط التشغيل بعد الرفع:
 
-الرابط:
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_4legacyclean`
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=55_3docstable`
-
-Apps Script لا يتغير. آخر Backend ثابت هو V50 Backup Center Pro.
+آخر Apps Script ثابت: **V50 Backup Center Pro**. لا تعدل Apps Script مع هذه النسخة.

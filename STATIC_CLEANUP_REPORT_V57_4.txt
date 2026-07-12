@@ -1,0 +1,17 @@
+Static Cleanup Report V57.4
+Version token: 57_4legacyclean
+Total files: 21
+Production JS files: 8
+Index JS refs: 8
+JS refs:
+- assets/js/01-core-base.js?v=57_4legacyclean
+- assets/js/02-business-legacy.js?v=57_4legacyclean
+- assets/js/03-boot-calc-print.js?v=57_4legacyclean
+- assets/js/04-sync-import.js?v=57_4legacyclean
+- assets/js/05-feature-patches.js?v=57_4legacyclean
+- assets/js/06-data-protection-images-backup.js?v=57_4legacyclean
+- assets/js/07-clients-final.js?v=57_4legacyclean
+- assets/js/08-post49-final-modules.js?v=57_4legacyclean
+Removed from public docs: V57.3 docs
+Legacy cleanup: comment-only obsolete sync/client/PWA cleanup notes removed from 01-core-base.js
+No Apps Script changes
