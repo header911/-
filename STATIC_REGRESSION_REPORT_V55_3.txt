@@ -1,0 +1,10 @@
+V55.3 Static Regression Report
+
+- JS syntax check: PASSED
+- JS files count in index: 8
+- No separated old post49 modules loaded in index.
+- Documents open/print function openRecord: PRESENT
+- Print Draft badge removed from generated documents.
+- Invoice issue note removed from generated documents.
+- Stored old document HTML is sanitized at open/print time.
+- Service worker cache: haydar-pack-pwa-v55-3-docstable

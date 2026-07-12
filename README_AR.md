@@ -1,4 +1,4 @@
-# Haydar Pack V55.2
+# Haydar Pack V55.3
 
 نسخة تثبيت واختبار Regression مبنية على V55.1 Docs Root Fix.
 
@@ -6,6 +6,6 @@
 
 الرابط:
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=55_2regression`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=55_3docstable`
 
 Apps Script لا يتغير. آخر Backend ثابت هو V50 Backup Center Pro.
