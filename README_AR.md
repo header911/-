@@ -1,14 +1,8 @@
-# Haydar Pack V53.3
+# Haydar Pack V55
 
-نسخة V53.3 تضيف تقارير مالية وتحليل كاش فلو فوق V52 بدون تعديل Apps Script.
+نسخة V55 هي نسخة دمج وتثبيت مبنية على V54.2، هدفها تقليل الملفات والحفاظ على كل ما تم من بعد V49.
 
-طريقة التشغيل:
-1. ارفع محتويات ZIP على GitHub بنفس الهيكلة.
-2. لا تعدل Apps Script.
-3. افتح الرابط:
-   `https://headersobhy-code.github.io/Haydar-Pack/?v=54_2litefix`
+افتح بعد الرفع:
+`https://headersobhy-code.github.io/Haydar-Pack/?v=55_1docfix`
 
-
-## V53.3 Notes
-- النسخة الحالية: `?v=54_2litefix`.
-- V53.3 يصلح ظهور التقارير، زر Back في الموبايل، إزالة الزر العائم، وتغيير رابط Apps Script من شاشة المزامنة.
+لا تعدل Apps Script. آخر Apps Script مطلوب هو V50 Backup Center Pro.

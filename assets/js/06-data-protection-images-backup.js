@@ -193,7 +193,7 @@
     saveSafeSnapshot('before-safe-reload');
     try{await cloudPreflight(true)}catch(e){toastSafe((e&&e.message)||'فشل فحص الأمان — سيتم إعادة تحميل الصفحة فقط بدون مسح')}
     var base=location.href.split('?')[0];
-    location.href=base+'?v=54_2litefix&safeReload='+Date.now();
+    location.href=base+'?v=55_1docfix&safeReload='+Date.now();
   };
   function panelHtml(){
     var c=counts(currentDB()), snap=readSafeSnapshot(), sc=snap&&snap.counts;
@@ -339,7 +339,7 @@
 (function(){
   'use strict';
   var VERSION='52.0.0-reports-pro';
-  var SITE_VERSION='54_2litefix';
+  var SITE_VERSION='55_1docfix';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -619,7 +619,7 @@
 (function(){
   'use strict';
   var VERSION='52.0.0-reports-pro';
-  var SITE_VERSION='54_2litefix';
+  var SITE_VERSION='55_1docfix';
   var LOG_KEY='hayder_pack_error_log_v49';
   var MAX_LOGS=80;
   var wrapped=false;
