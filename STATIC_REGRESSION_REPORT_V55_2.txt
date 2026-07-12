@@ -1,0 +1,13 @@
+Haydar Pack V55.2 Static Regression Report
+Version URL: ?v=55_2regression
+Local JS count: 8
+Index JS count: 8
+Missing local refs: None
+Old split module refs in index: None
+Has 08 consolidated: True
+no_old_version_token_55_1docfix: OK
+no_dynamic_v52_v53_inline_onclick: OK
+no_rows_join_error_literal: OK
+has_v55_2_gate: OK
+has_backend_events: OK
+has_critical_errors_check: OK

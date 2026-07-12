@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-mobile-back-lite-fix';
-  var SITE_VERSION='55_1docfix';
+  var SITE_VERSION='55_2regression';
   var booted=false, stack=[];
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
   function isMobile(){try{return window.matchMedia('(max-width: 760px)').matches}catch(e){return window.innerWidth<=760}}
@@ -33,8 +33,8 @@
 /* Haydar Pack V52 Reports Pro - V54.2 event-safe buttons */
 (function(){
   'use strict';
-  var VERSION='52.0.0-reports-pro';
-  var SITE_VERSION='55_1docfix';
+  var VERSION='55.2.0-regression-clean-baseline';
+  var SITE_VERSION='55_2regression';
   var ROOT_ID='hp-v52-reports-pro';
 
   function byId(id){return document.getElementById(id)}
@@ -284,7 +284,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-finance-lite-fix';
-  var SITE_VERSION='55_1docfix';
+  var SITE_VERSION='55_2regression';
   var ROOT_ID='hp-v53-finance-insights';
   var MODAL_ID='hp-v53-drilldown-modal';
   var lastError='';
@@ -375,8 +375,8 @@
    Final frontend tester: verifies post-V49 modules through V54, forces reports order, injects Apps Script /exec editor in sync screen. */
 (function(){
   'use strict';
-  var VERSION='55.1.0-documents-root-fix';
-  var SITE_VERSION='55_1docfix';
+  var VERSION='55.2.0-regression-clean-baseline';
+  var SITE_VERSION='55_2regression';
   var REPORT_AUDIT_ID='hp-v533-post49-audit-strip';
   var BACKEND_PANEL_ID='hp-v533-backend-panel';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
@@ -414,21 +414,34 @@
     var v53=byId('hp-v53-finance-insights'), v52=byId('hp-v52-reports-pro'), strip=byId(REPORT_AUDIT_ID);
     if(v53&&v52&&v52.parentNode===reports)reports.insertBefore(v53,v52);
     if(strip&&strip.parentNode===reports)reports.insertBefore(strip,reports.firstChild);
-    if(!v53){var box=document.createElement('div');box.id='hp-v53-finance-insights';box.className='hp-v53-wrap';box.innerHTML='<div class="hp-v53-head"><div><div class="sec-label">Reports Pro V53.3</div><h2>قسم V53 لم يتحمل</h2><p>لو ظهرت الرسالة دي، ارفع ملفات V53.3 كاملة وافتح الرابط الجديد.</p></div><div><button class="btn small blue" onclick="location.reload()">إعادة تحميل</button></div></div>';reports.insertBefore(box,v52||reports.firstChild);log('V53_3_FINANCE_MISSING','HP_V53_FINANCE root missing after render')}
+    if(!v53){var box=document.createElement('div');box.id='hp-v53-finance-insights';box.className='hp-v53-wrap';box.innerHTML='<div class="hp-v53-head"><div><div class="sec-label">Reports Pro V53.3</div><h2>قسم V53 لم يتحمل</h2><p>لو ظهرت الرسالة دي، ارفع ملفات V53.3 كاملة وافتح الرابط الجديد.</p></div><div><button class="btn small blue" type="button" data-hp-v552-reload="1">إعادة تحميل</button></div></div>';reports.insertBefore(box,v52||reports.firstChild);log('V53_3_FINANCE_MISSING','HP_V53_FINANCE root missing after render')}
   }
   function finalRenderReports(){try{if(typeof window.__hpV533BaseReports==='function')window.__hpV533BaseReports.apply(this,arguments)}catch(e){log('V53_3_BASE_REPORTS_ERROR',String(e&&e.message||e))} try{placeAuditStrip();forceReportsOrder()}catch(e){log('V53_3_FINAL_REPORTS_ERROR',String(e&&e.message||e))}}
   function injectBackendPanel(force){
     injectStyle(); var drawer=q('#dr-sync .drawer')||q('#dr-settings .drawer'); if(!drawer)return; var old=byId(BACKEND_PANEL_ID); if(old)old.remove();
     var div=document.createElement('div'); div.id=BACKEND_PANEL_ID;
     var url=currentBackend();
-    div.innerHTML='<h3>تغيير رابط Apps Script من البرنامج</h3><div style="font-weight:900;margin-bottom:8px">استخدمه فقط لو عملت Apps Script جديد أو Deploy جديد. هذا يغير رابط المزامنة على هذا الجهاز فقط.</div><input id="hp-v533-backend-url" value="'+esc(url)+'" placeholder="https://script.google.com/macros/s/.../exec"><div class="btn-row" style="margin-top:10px"><button class="btn blue" onclick="HP_V53_3_FINAL.saveBackendUrl()">حفظ الرابط</button><button class="btn green" onclick="HP_V53_3_FINAL.testBackendUrl()">اختبار الاتصال</button><button class="btn" onclick="HP_V53_3_FINAL.resetBackendUrl()">رجوع للافتراضي</button></div><div id="hp-v533-backend-test">الرابط الحالي محفوظ محليًا وسيستخدم في المزامنة والنسخ الاحتياطي.</div>';
+    div.innerHTML='<h3>تغيير رابط Apps Script من البرنامج</h3><div style="font-weight:900;margin-bottom:8px">استخدمه فقط لو عملت Apps Script جديد أو Deploy جديد. هذا يغير رابط المزامنة على هذا الجهاز فقط.</div><input id="hp-v533-backend-url" value="'+esc(url)+'" placeholder="https://script.google.com/macros/s/.../exec"><div class="btn-row" style="margin-top:10px"><button class="btn blue" type="button" data-hp-v533-backend="save">حفظ الرابط</button><button class="btn green" type="button" data-hp-v533-backend="test">اختبار الاتصال</button><button class="btn" type="button" data-hp-v533-backend="reset">رجوع للافتراضي</button></div><div id="hp-v533-backend-test">الرابط الحالي محفوظ محليًا وسيستخدم في المزامنة والنسخ الاحتياطي.</div>';
     var anchor=byId('hp-v41-sync-ui')||byId('hp-v37-sync-panel')||drawer.children[2];
     if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(div,anchor.nextSibling); else drawer.insertBefore(div,drawer.firstChild);
     if(force){var inp=byId('hp-v533-backend-url'); if(inp)inp.focus()}
   }
+  function bindBackendEvents(){
+    if(window.__HP_V552_BACKEND_EVENTS)return; window.__HP_V552_BACKEND_EVENTS=true;
+    document.addEventListener('click',function(ev){
+      var b=ev.target&&ev.target.closest?ev.target.closest('[data-hp-v533-backend],[data-hp-v552-reload]'):null;
+      if(!b)return;
+      try{ev.preventDefault();ev.stopPropagation()}catch(e){}
+      if(b.hasAttribute('data-hp-v552-reload')){try{location.reload()}catch(e){} return;}
+      var a=b.getAttribute('data-hp-v533-backend');
+      if(a==='save')return saveBackendFromInput();
+      if(a==='test')return testBackend();
+      if(a==='reset')return resetBackend();
+    },true);
+  }
   function hookOpenSync(){var old=window.openSync; if(typeof old==='function'&&!old.__hpV533Backend){var w=function(){var r=old.apply(this,arguments); setTimeout(function(){injectBackendPanel(false)},260); setTimeout(function(){injectBackendPanel(false)},900); return r}; w.__hpV533Backend=true; w.__hpOriginal=old; window.openSync=w}}
   function hookReports(){if(window.__HP_V533_AUDIT_HOOKED)return; window.__HP_V533_AUDIT_HOOKED=true; aliasModules(); window.__hpV533BaseReports=window.renderReports; window.renderReports=finalRenderReports; setTimeout(function(){try{if((window.activePage||'')==='reports')window.renderReports()}catch(e){}},250); setTimeout(function(){try{if((window.activePage||'')==='reports')window.renderReports()}catch(e){}},900); setTimeout(function(){try{if((window.activePage||'')==='reports')window.renderReports()}catch(e){}},1800)}
-  function boot(){injectStyle();hookOpenSync();hookReports();setTimeout(function(){try{if(q('#dr-sync.open .drawer'))injectBackendPanel(false)}catch(e){}},1000)}
+  function boot(){injectStyle();bindBackendEvents();hookOpenSync();hookReports();setTimeout(function(){try{if(q('#dr-sync.open .drawer'))injectBackendPanel(false)}catch(e){}},1000)}
   function verify(){var s=moduleStatus();return {version:VERSION,siteVersion:SITE_VERSION,modules:s,ok:s.every(function(x){return x.ok}),backendUrl:currentBackend()}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   window.HP_V53_3_FINAL={version:VERSION,siteVersion:SITE_VERSION,verify:verify,renderReports:finalRenderReports,forceReportsOrder:forceReportsOrder,backendUrl:currentBackend,saveBackendUrl:saveBackendFromInput,resetBackendUrl:resetBackend,testBackendUrl:testBackend,injectBackendPanel:injectBackendPanel};
@@ -442,8 +455,8 @@
    Built on V53.3 without touching sync/backend logic. */
 (function(){
   'use strict';
-  var VERSION='55.1.0-documents-root-fix';
-  var SITE_VERSION='55_1docfix';
+  var VERSION='55.2.0-regression-clean-baseline';
+  var SITE_VERSION='55_2regression';
   var ROOT_ID='hp-v54-1-repair';
   var PREVIEW_MODAL_ID='hp-v54-doc-preview';
   var STATUS={draft:'Draft',sent:'Sent',paid:'Paid',cancelled:'Cancelled'};
@@ -528,7 +541,7 @@
   function exportJson(){download('haydar-pack-v54-documents.json',JSON.stringify({exportedAt:nowIso(),documents:docs()},null,2),'application/json;charset=utf-8')}
   function injectStyle(){if(byId('hp-v54-style'))return; var st=document.createElement('style'); st.id='hp-v54-style'; st.textContent='.hp-v54-docs-pro{margin:18px 0;padding:18px;border:1px solid #dbe3ee;border-radius:18px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04)}.hp-v54-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.hp-v54-head h2{margin:3px 0;font-size:24px}.hp-v54-head p{margin:0;color:#5b6b83;font-weight:900}.hp-v54-tools{display:flex;gap:8px;flex-wrap:wrap}.hp-v54-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}.hp-v54-stats div{border:1px solid #e0e7f0;border-radius:14px;padding:10px;background:#f8fafc}.hp-v54-stats b{display:block;font-size:24px}.hp-v54-stats span{font-weight:900;color:#667085}.hp-v54-doc-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;border:1px solid #e6edf5;border-radius:14px;padding:10px;margin-bottom:8px}.hp-v54-doc-row b{font-size:16px}.hp-v54-doc-row span{display:block;color:#5b6b83;font-weight:900}.hp-v54-status{border:2px solid #111;border-radius:999px;padding:5px 10px;font-weight:900;color:#000!important}.hp-v54-status.ok{background:#d9fbe8}.hp-v54-status.blue{background:#dbeafe}.hp-v54-status.bad{background:#ffe0e0}.hp-v54-status.draft{background:#fff2c2}.hp-v54-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.hp-v54-actions select{border:2px solid #000;border-radius:10px;font-weight:900;padding:7px;background:#fff}@media(max-width:720px){.hp-v54-head{display:block}.hp-v54-tools{margin-top:10px}.hp-v54-stats{grid-template-columns:1fr 1fr}.hp-v54-doc-row{grid-template-columns:1fr}.hp-v54-actions .btn,.hp-v54-actions select{width:100%;min-height:42px}}'; document.head.appendChild(st)}
   function wrapReports(){var old=window.renderReports; if(typeof old==='function'&&!old.__hpV54Docs){var w=function(){var r=old.apply(this,arguments); setTimeout(renderCenter,60); return r}; w.__hpV54Docs=true; w.__hpOriginal=old; window.renderReports=w}}
-  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V55.1 Docs Root Fix loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
+  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V55.2 Regression Clean Baseline loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
   window.printSelectedClientQuote=function(cid){clientDoc(cid,'quote')};
   window.printSelectedClientInvoice=function(cid){clientDoc(cid,'invoice')};
   window.printSelectedClientStatement=function(cid){clientStatement(cid)};
@@ -543,8 +556,8 @@
    post-V49 file to avoid increasing JavaScript file count. */
 (function(){
   'use strict';
-  var VERSION='55.1.0-documents-root-fix';
-  var SITE_VERSION='55_1docfix';
+  var VERSION='55.2.0-regression-clean-baseline';
+  var SITE_VERSION='55_2regression';
   var CARD_ID='hp-v55-quality-gate';
   var STYLE_ID='hp-v55-quality-style';
   function $(id){return document.getElementById(id)}
@@ -552,7 +565,7 @@
   function now(){try{return new Date().toLocaleString('ar-EG')}catch(e){return new Date().toISOString()}}
   function has(name){try{return !!window[name]}catch(e){return false}}
   function getBackend(){try{return String(localStorage.getItem('haydar_pack_apps_script_url')||localStorage.getItem('HP_BACKEND_URL')||window.HP_APPS_SCRIPT_URL||'')}catch(e){return String(window.HP_APPS_SCRIPT_URL||'')}}
-  function errors(){try{return JSON.parse(localStorage.getItem('hp_error_log_v48')||localStorage.getItem('hp_error_log')||'[]')}catch(e){return []}}
+  function errors(){try{var keys=['hayder_pack_error_log_v49','hp_error_log_v48','hp_error_log'];for(var i=0;i<keys.length;i++){var raw=localStorage.getItem(keys[i]);if(raw){var arr=JSON.parse(raw)||[];if(Array.isArray(arr))return arr}}return []}catch(e){return []}}
   function dbCount(k){try{return (window.DB&&Array.isArray(window.DB[k]))?window.DB[k].length:0}catch(e){return 0}}
   function modRows(){
     return [
@@ -566,13 +579,29 @@
       ['Post-V49 modules consolidated', true]
     ];
   }
+  function criticalErrors(){
+    var err=errors();
+    var nowMs=Date.now();
+    var critical=err.filter(function(x){var s=String((x&&x.message)||x||'')+' '+String((x&&x.type)||'');return /Unexpected end of input|rows\.join is not a function|ensureRoot is not defined|V54_RENDER_ERROR/i.test(s)});
+    var recent=critical.filter(function(x){
+      var t=Date.parse((x&&x.time)||(x&&x.ts)||(x&&x.date)||'');
+      return isFinite(t) && nowMs-t<30*60*1000;
+    });
+    return {total:critical.length,recent:recent.length};
+  }
   function scan(){
     var rows=modRows();
-    var err=errors();
-    var badSyntax=err.filter(function(x){var s=String((x&&x.message)||x||'');return /Unexpected end of input|rows\.join is not a function/i.test(s)}).length;
-    var ok=rows.every(function(r){return !!r[1]}) && badSyntax===0;
+    var ce=criticalErrors();
+    var domChecks=[
+      ['مفيش زر عائم', !document.querySelector('#hp-mobile-fab,#hp-v51-fab,.hp-mobile-fab,.hp-v51-fab,.quick-action-fab')],
+      ['V53 فوق V52 عند التقارير', (function(){var v53=document.getElementById('hp-v53-finance-insights'),v52=document.getElementById('hp-v52-reports-pro');return !v53||!v52||!!(v53.compareDocumentPosition(v52)&Node.DOCUMENT_POSITION_FOLLOWING)})()],
+      ['Documents Pro جاهز', has('HP_V54_DOCS')&&typeof window.HP_V54_DOCS.refresh==='function'],
+      ['Back Guard جاهز', (has('HP_V51_MOBILE_UX')||has('HP_V52_MOBILE_UX'))]
+    ];
+    rows=rows.concat(domChecks);
+    var ok=rows.every(function(r){return !!r[1]}) && ce.recent===0;
     return {
-      ok:ok, rows:rows, oldErrors:badSyntax, backend:getBackend(), time:now(),
+      ok:ok, rows:rows, criticalErrors:ce, oldErrors:ce.total, backend:getBackend(), time:now(),
       counts:{clients:dbCount('clients'), factories:dbCount('factories'), orders:dbCount('orders'), payments:dbCount('payments'), documents:dbCount('documents')}
     };
   }
@@ -586,13 +615,13 @@
     var s=scan();
     var rowHtml=s.rows.map(function(r){return '<span class="hp-v55-pill '+(r[1]?'ok':'bad')+'">'+(r[1]?'✓ ':'! ')+esc(r[0])+'</span>'}).join('');
     var c=s.counts;
-    return '<h3>V55 Quality Gate — فحص النسخة قبل الاستخدام</h3>'+
-      '<div class="hp-v55-meta">الحالة: <b>'+(s.ok?'سليمة':'تحتاج مراجعة')+'</b> · آخر فحص: '+esc(s.time)+'</div>'+
+    return '<h3>V55.2 Regression Gate — فحص تثبيت النسخة</h3>'+
+      '<div class="hp-v55-meta">الحالة بعد الاختبار: <b>'+(s.ok?'سليمة':'تحتاج مراجعة')+'</b> · آخر فحص: '+esc(s.time)+'</div>'+
       '<div class="hp-v55-grid">'+rowHtml+'</div>'+
       '<div class="hp-v55-meta">الداتا: عملاء '+c.clients+' | مصانع '+c.factories+' | أوردرات '+c.orders+' | دفعات '+c.payments+' | مستندات '+c.documents+'</div>'+
-      '<div class="hp-v55-meta">أخطاء قديمة خطرة في السجل: '+s.oldErrors+'</div>'+
+      '<div class="hp-v55-meta">أخطاء حرجة محفوظة بالسجل: '+s.criticalErrors.total+' | حديثة بعد الإصلاح: '+s.criticalErrors.recent+'</div>'+
       '<div class="hp-v55-meta" dir="ltr">Apps Script: '+esc(s.backend||'غير محدد')+'</div>'+
-      '<div class="btn-row"><button class="btn green" type="button" data-hp-v55="scan">إعادة الفحص</button><button class="btn blue" type="button" data-hp-v55="download">تنزيل تقرير V55</button></div>';
+      '<div class="btn-row"><button class="btn green" type="button" data-hp-v55="scan">إعادة الفحص</button><button class="btn blue" type="button" data-hp-v55="download">تنزيل تقرير V55.2</button></div>';
   }
   function place(){
     try{
@@ -601,16 +630,16 @@
       if(!target)return;
       var card=$(CARD_ID); if(!card){card=document.createElement('div');card.id=CARD_ID;var anchor=target.querySelector('#hp-v533-backend-panel')||target.querySelector('#hp-v50-backup-pro')||target.querySelector('.cloud-status-grid'); if(anchor)anchor.insertAdjacentElement('afterend',card); else target.appendChild(card)}
       var s=scan(); card.className=s.ok?'ok':'bad'; card.innerHTML=html();
-    }catch(e){try{console.error('V55 Quality Gate render failed',e)}catch(_){}}
+    }catch(e){try{console.error('V55.2 Regression Gate render failed',e)}catch(_){}}
   }
   function download(){
     var s=scan();
-    var txt='Haydar Pack V55 Quality Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
-    try{var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haydar_pack_v55_quality_report.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){alert(txt)}
+    var txt='Haydar Pack V55.2 Regression Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
+    try{var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haydar_pack_v55_2_regression_report.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){alert(txt)}
   }
   function bind(){if(window.__HP_V55_QG_EVENTS)return;window.__HP_V55_QG_EVENTS=true;document.addEventListener('click',function(ev){var b=ev.target&&ev.target.closest?ev.target.closest('[data-hp-v55]'):null;if(!b)return;try{ev.preventDefault();ev.stopPropagation()}catch(e){}var a=b.getAttribute('data-hp-v55');if(a==='scan')place();if(a==='download')download();},true)}
   function wrapShowPage(){var old=window.showPage;if(typeof old!=='function'||old.__hpV55QG)return;var w=function(){var r=old.apply(this,arguments);setTimeout(place,120);setTimeout(function(){try{if(window.HP_V53_FINANCE&&typeof HP_V53_FINANCE.refresh==='function')HP_V53_FINANCE.refresh(); if(window.HP_V54_DOCS&&typeof HP_V54_DOCS.refresh==='function')HP_V54_DOCS.refresh()}catch(e){}},250);return r};w.__hpV55QG=true;w.__hpOriginal=old;window.showPage=w}
-  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V55 Quality Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
+  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V55.2 Regression Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300)});else setTimeout(boot,300);
   window.HP_V55_QUALITY_GATE={version:VERSION,siteVersion:SITE_VERSION,scan:scan,render:place,download:download};
 })();

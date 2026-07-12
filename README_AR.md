@@ -1,8 +1,11 @@
-# Haydar Pack V55
+# Haydar Pack V55.2
 
-نسخة V55 هي نسخة دمج وتثبيت مبنية على V54.2، هدفها تقليل الملفات والحفاظ على كل ما تم من بعد V49.
+نسخة تثبيت واختبار Regression مبنية على V55.1 Docs Root Fix.
 
-افتح بعد الرفع:
-`https://headersobhy-code.github.io/Haydar-Pack/?v=55_1docfix`
+الغرض: تثبيت النسخة الحالية قبل V56 Capital Intelligence Dashboard.
 
-لا تعدل Apps Script. آخر Apps Script مطلوب هو V50 Backup Center Pro.
+الرابط:
+
+`https://headersobhy-code.github.io/Haydar-Pack/?v=55_2regression`
+
+Apps Script لا يتغير. آخر Backend ثابت هو V50 Backup Center Pro.
