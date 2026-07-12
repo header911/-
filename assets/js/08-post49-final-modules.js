@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-mobile-back-lite-fix';
-  var SITE_VERSION='55_3docstable';
+  var SITE_VERSION='56capitalwallet';
   var booted=false, stack=[];
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
   function isMobile(){try{return window.matchMedia('(max-width: 760px)').matches}catch(e){return window.innerWidth<=760}}
@@ -33,8 +33,8 @@
 /* Haydar Pack V52 Reports Pro - V54.2 event-safe buttons */
 (function(){
   'use strict';
-  var VERSION='55.3.0-documents-print-stable';
-  var SITE_VERSION='55_3docstable';
+  var VERSION='56.0.0-capital-wallet-intelligence';
+  var SITE_VERSION='56capitalwallet';
   var ROOT_ID='hp-v52-reports-pro';
 
   function byId(id){return document.getElementById(id)}
@@ -284,7 +284,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-finance-lite-fix';
-  var SITE_VERSION='55_3docstable';
+  var SITE_VERSION='56capitalwallet';
   var ROOT_ID='hp-v53-finance-insights';
   var MODAL_ID='hp-v53-drilldown-modal';
   var lastError='';
@@ -375,8 +375,8 @@
    Final frontend tester: verifies post-V49 modules through V54, forces reports order, injects Apps Script /exec editor in sync screen. */
 (function(){
   'use strict';
-  var VERSION='55.3.0-documents-print-stable';
-  var SITE_VERSION='55_3docstable';
+  var VERSION='56.0.0-capital-wallet-intelligence';
+  var SITE_VERSION='56capitalwallet';
   var REPORT_AUDIT_ID='hp-v533-post49-audit-strip';
   var BACKEND_PANEL_ID='hp-v533-backend-panel';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
@@ -455,8 +455,8 @@
    Built on V53.3 without touching sync/backend logic. */
 (function(){
   'use strict';
-  var VERSION='55.3.0-documents-print-stable';
-  var SITE_VERSION='55_3docstable';
+  var VERSION='56.0.0-capital-wallet-intelligence';
+  var SITE_VERSION='56capitalwallet';
   var ROOT_ID='hp-v54-1-repair';
   var PREVIEW_MODAL_ID='hp-v54-doc-preview';
   var STATUS={draft:'Draft',sent:'Sent',paid:'Paid',cancelled:'Cancelled'};
@@ -581,8 +581,8 @@
    post-V49 file to avoid increasing JavaScript file count. */
 (function(){
   'use strict';
-  var VERSION='55.3.0-documents-print-stable';
-  var SITE_VERSION='55_3docstable';
+  var VERSION='56.0.0-capital-wallet-intelligence';
+  var SITE_VERSION='56capitalwallet';
   var CARD_ID='hp-v55-quality-gate';
   var STYLE_ID='hp-v55-quality-style';
   function $(id){return document.getElementById(id)}
@@ -601,6 +601,7 @@
       ['V53 Finance Insights Repair', has('HP_V53_FINANCE')],
       ['V54 Documents Pro', has('HP_V54_DOCS')],
       ['Apps Script URL editable', has('HP_V53_3_FINAL') && typeof window.HP_V53_3_FINAL.saveBackendUrl==='function'],
+      ['V56 Capital & Wallet', has('HP_V56_CAPITAL_WALLET')],
       ['Post-V49 modules consolidated', true]
     ];
   }
@@ -640,13 +641,13 @@
     var s=scan();
     var rowHtml=s.rows.map(function(r){return '<span class="hp-v55-pill '+(r[1]?'ok':'bad')+'">'+(r[1]?'✓ ':'! ')+esc(r[0])+'</span>'}).join('');
     var c=s.counts;
-    return '<h3>V55.3 Regression Gate — فحص تثبيت النسخة</h3>'+
+    return '<h3>V56 Regression Gate — فحص رأس المال والسيولة</h3>'+
       '<div class="hp-v55-meta">الحالة بعد الاختبار: <b>'+(s.ok?'سليمة':'تحتاج مراجعة')+'</b> · آخر فحص: '+esc(s.time)+'</div>'+
       '<div class="hp-v55-grid">'+rowHtml+'</div>'+
       '<div class="hp-v55-meta">الداتا: عملاء '+c.clients+' | مصانع '+c.factories+' | أوردرات '+c.orders+' | دفعات '+c.payments+' | مستندات '+c.documents+'</div>'+
       '<div class="hp-v55-meta">أخطاء حرجة محفوظة بالسجل: '+s.criticalErrors.total+' | حديثة بعد الإصلاح: '+s.criticalErrors.recent+'</div>'+
       '<div class="hp-v55-meta" dir="ltr">Apps Script: '+esc(s.backend||'غير محدد')+'</div>'+
-      '<div class="btn-row"><button class="btn green" type="button" data-hp-v55="scan">إعادة الفحص</button><button class="btn blue" type="button" data-hp-v55="download">تنزيل تقرير V55.3</button></div>';
+      '<div class="btn-row"><button class="btn green" type="button" data-hp-v55="scan">إعادة الفحص</button><button class="btn blue" type="button" data-hp-v55="download">تنزيل تقرير V56</button></div>';
   }
   function place(){
     try{
@@ -655,16 +656,195 @@
       if(!target)return;
       var card=$(CARD_ID); if(!card){card=document.createElement('div');card.id=CARD_ID;var anchor=target.querySelector('#hp-v533-backend-panel')||target.querySelector('#hp-v50-backup-pro')||target.querySelector('.cloud-status-grid'); if(anchor)anchor.insertAdjacentElement('afterend',card); else target.appendChild(card)}
       var s=scan(); card.className=s.ok?'ok':'bad'; card.innerHTML=html();
-    }catch(e){try{console.error('V55.3 Regression Gate render failed',e)}catch(_){}}
+    }catch(e){try{console.error('V56 Regression Gate render failed',e)}catch(_){}}
   }
   function download(){
     var s=scan();
-    var txt='Haydar Pack V55.3 Regression Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
-    try{var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haydar_pack_v55_2_regression_report.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){alert(txt)}
+    var txt='Haydar Pack V56 Regression Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
+    try{var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haydar_pack_v56_regression_report.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){alert(txt)}
   }
   function bind(){if(window.__HP_V55_QG_EVENTS)return;window.__HP_V55_QG_EVENTS=true;document.addEventListener('click',function(ev){var b=ev.target&&ev.target.closest?ev.target.closest('[data-hp-v55]'):null;if(!b)return;try{ev.preventDefault();ev.stopPropagation()}catch(e){}var a=b.getAttribute('data-hp-v55');if(a==='scan')place();if(a==='download')download();},true)}
   function wrapShowPage(){var old=window.showPage;if(typeof old!=='function'||old.__hpV55QG)return;var w=function(){var r=old.apply(this,arguments);setTimeout(place,120);setTimeout(function(){try{if(window.HP_V53_FINANCE&&typeof HP_V53_FINANCE.refresh==='function')HP_V53_FINANCE.refresh(); if(window.HP_V54_DOCS&&typeof HP_V54_DOCS.refresh==='function')HP_V54_DOCS.refresh()}catch(e){}},250);return r};w.__hpV55QG=true;w.__hpOriginal=old;window.showPage=w}
-  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V55.3 Regression Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
+  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V56 Regression Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300)});else setTimeout(boot,300);
   window.HP_V55_QUALITY_GATE={version:VERSION,siteVersion:SITE_VERSION,scan:scan,render:place,download:download};
+})();
+
+/* ===== V56 CAPITAL & WALLET INTELLIGENCE DASHBOARD =====
+   Adds a separate page for capital/liquidity decisions without touching old reports.
+   Business profit definition: client order value - factory order cost.
+   House expenses affect liquidity and monthly net after house expenses, not the base order profit. */
+(function(){
+  'use strict';
+  var VERSION='56.0.0-capital-wallet-intelligence';
+  var SITE_VERSION='56capitalwallet';
+  var PAGE='capital';
+  var PAGE_ID='pg-capital';
+  var NAV_ID='hp-v56-nav';
+  var STYLE_ID='hp-v56-style';
+  var EXPORT_NAME='haydar-pack-v56-capital-intelligence.csv';
+  function byId(id){return document.getElementById(id)}
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function attr(v){return esc(v).replace(/\n/g,' ')}
+  function n(v){var x=parseFloat(String(v==null?'':v).replace(/,/g,''));return isNaN(x)?0:x}
+  function money(v){try{return n(v).toLocaleString('ar-EG',{maximumFractionDigits:2})+' ج'}catch(e){return String(n(v))+' ج'}}
+  function pct(v){v=n(v);return (isFinite(v)?Math.max(0,Math.min(999,v)):0).toLocaleString('ar-EG',{maximumFractionDigits:1})+'%'}
+  function today(){try{return new Date().toISOString().slice(0,10)}catch(e){return ''}}
+  function monthStart(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'}
+  function monthEnd(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(new Date(d.getFullYear(),d.getMonth()+1,0).getDate()).padStart(2,'0')}
+  function uid(){try{if(typeof window.uid==='function')return window.uid()}catch(e){} return 'v56_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+  function toast(msg){try{if(typeof window.toast==='function')window.toast(msg);else console.log(msg)}catch(e){}}
+  function log(type,msg,extra){try{if(window.HP_V50_STABILITY&&HP_V50_STABILITY.log)HP_V50_STABILITY.log(type,msg,extra||'V56')}catch(e){}}
+  function arr(k){return (window.DB&&Array.isArray(DB[k]))?DB[k]:[]}
+  function saveData(reason){
+    try{if(typeof window.save==='function')window.save(false);else localStorage.setItem('hayder_bags_app',JSON.stringify(window.DB||{}))}catch(e){log('V56_SAVE_ERROR',String(e&&e.message||e),reason)}
+    try{if(window.HP_V37_SYNC&&typeof HP_V37_SYNC.markPending==='function')HP_V37_SYNC.markPending('v56-'+(reason||'save'))}catch(e){}
+    setTimeout(function(){try{if(window.HP_V501_SAVE_GUARD&&typeof HP_V501_SAVE_GUARD.confirm==='function')HP_V501_SAVE_GUARD.confirm('v56-'+(reason||'save'),false);else if(window.HP_V37_SYNC&&typeof HP_V37_SYNC.push==='function')HP_V37_SYNC.push(false)}catch(e){}},250);
+  }
+  function ensureData(){
+    if(!window.DB)window.DB={};
+    if(!Array.isArray(DB.houseExpenses))DB.houseExpenses=[];
+    if(!Array.isArray(DB.walletAdjustments))DB.walletAdjustments=[];
+    DB.settings=DB.settings||{};
+    DB.settings.v56Wallet=DB.settings.v56Wallet||{};
+    var s=DB.settings.v56Wallet;
+    if(s.openingLiquidity==null)s.openingLiquidity=0;
+    if(!s.openingDate)s.openingDate=monthStart();
+    if(!s.reportFrom)s.reportFrom=monthStart();
+    if(!s.reportTo)s.reportTo=monthEnd();
+    return s;
+  }
+  function dateOf(v){v=String(v||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}
+  function inRange(date,from,to){date=dateOf(date); if(!date)return false; if(from&&date<from)return false; if(to&&date>to)return false; return true}
+  function daysAgo(date){date=dateOf(date); if(!date)return null; var a=new Date(date+'T00:00:00'), b=new Date(today()+'T00:00:00'); var d=Math.round((b-a)/(24*3600*1000)); return isFinite(d)?Math.max(0,d):null}
+  function daysBetween(a,b){a=dateOf(a);b=dateOf(b); if(!a||!b)return null; var x=new Date(a+'T00:00:00'),y=new Date(b+'T00:00:00'); var d=Math.round((y-x)/(24*3600*1000)); return isFinite(d)?Math.abs(d):null}
+  function clientName(id){var c=arr('clients').find(function(x){return x.id===id});return c?(c.name||'بدون اسم'):'عميل غير موجود'}
+  function factoryName(id){var f=arr('factories').find(function(x){return x.id===id});return f?(f.name||'بدون اسم'):'مصنع غير موجود'}
+  function orderClientTotal(o){try{if(typeof window.clientTotalForOrder==='function')return n(window.clientTotalForOrder(o))}catch(e){} var qty=(n(o&&o.fQty)||n(o&&o.qty));return Math.max(0,qty*n(o&&o.price)+n(o&&o.aklashe)-n(o&&o.discount)-n(o&&o.invoiceDiscount))}
+  function orderFactoryTotal(o){try{if(typeof window.factoryTotalForOrder==='function')return n(window.factoryTotalForOrder(o))}catch(e){} var qty=(n(o&&o.fQty)||n(o&&o.qty));return Math.max(0,qty*n(o&&o.fPrice)+n(o&&o.fAk))}
+  function orderProfit(o){return orderClientTotal(o)-orderFactoryTotal(o)}
+  function clientBalance(id){try{if(typeof window.clientBalance==='function')return n(window.clientBalance(id))}catch(e){} var c=arr('clients').find(function(x){return x.id===id})||{}; var os=arr('orders').filter(function(o){return o.clientId===id}); var ps=arr('payments').filter(function(p){return p.clientId===id}); return os.reduce(function(s,o){return s+orderClientTotal(o)-n(o.deposit)},n(c.debt))-ps.reduce(function(s,p){return s+n(p.amount)},0)}
+  function factoryBalance(id){try{if(typeof window.factoryBalance==='function')return n(window.factoryBalance(id))}catch(e){} var f=arr('factories').find(function(x){return x.id===id})||{}; var os=arr('orders').filter(function(o){return o.factoryId===id}); var ts=arr('transfers').filter(function(t){return t.factoryId===id}); return os.reduce(function(s,o){return s+orderFactoryTotal(o)},n(f.debt))-ts.reduce(function(s,t){return s+n(t.amount)},0)}
+  function paymentEventsForClient(cid){
+    var events=[];
+    arr('orders').filter(function(o){return o.clientId===cid&&n(o.deposit)>0}).forEach(function(o){events.push({date:dateOf(o.date)||today(),amount:n(o.deposit),type:'عربون أوردر',ref:o.code||''})});
+    arr('payments').filter(function(p){return p.clientId===cid}).forEach(function(p){events.push({date:dateOf(p.date)||today(),amount:n(p.amount),type:'دفعة',ref:p.note||''})});
+    return events.sort(function(a,b){return String(a.date).localeCompare(String(b.date))});
+  }
+  function averageGap(events){if(!events||events.length<2)return null; var gaps=[]; for(var i=1;i<events.length;i++){var d=daysBetween(events[i-1].date,events[i].date); if(d!=null)gaps.push(d)} return gaps.length?gaps.reduce(function(s,x){return s+x},0)/gaps.length:null}
+  function getPeriod(){var s=ensureData();return {from:dateOf(s.reportFrom)||monthStart(),to:dateOf(s.reportTo)||today()}}
+  function calcAll(){
+    var s=ensureData(), p=getPeriod(), allOrders=arr('orders'), periodOrders=allOrders.filter(function(o){return inRange(o.date,p.from,p.to)});
+    var orderSales=periodOrders.reduce(function(x,o){return x+orderClientTotal(o)},0);
+    var orderCosts=periodOrders.reduce(function(x,o){return x+orderFactoryTotal(o)},0);
+    var orderProfitSum=orderSales-orderCosts;
+    var businessExpenses=arr('expenses').filter(function(e){return inRange(e.date,p.from,p.to)}).reduce(function(x,e){return x+n(e.amount)},0);
+    var housePeriod=arr('houseExpenses').filter(function(e){return inRange(e.date,p.from,p.to)}).reduce(function(x,e){return x+n(e.amount)},0);
+    var profitAfterBusiness=orderProfitSum-businessExpenses;
+    var profitAfterHouse=profitAfterBusiness-housePeriod;
+    var flowFrom=dateOf(s.openingDate)||'';
+    var flowTo=today();
+    function flowIn(d){return inRange(d,flowFrom,flowTo)}
+    var deposits=allOrders.filter(function(o){return n(o.deposit)>0&&flowIn(o.date)}).reduce(function(x,o){return x+n(o.deposit)},0);
+    var payments=arr('payments').filter(function(x){return flowIn(x.date)}).reduce(function(x,p){return x+n(p.amount)},0);
+    var customerReceipts=deposits+payments;
+    var factoryPaid=arr('transfers').filter(function(t){return flowIn(t.date)}).reduce(function(x,t){return x+n(t.amount)},0);
+    var businessPaid=arr('expenses').filter(function(e){return flowIn(e.date)}).reduce(function(x,e){return x+n(e.amount)},0);
+    var housePaid=arr('houseExpenses').filter(function(e){return flowIn(e.date)}).reduce(function(x,e){return x+n(e.amount)},0);
+    var adjustments=arr('walletAdjustments').filter(function(a){return flowIn(a.date)}).reduce(function(x,a){return x+(a.type==='out'?-n(a.amount):n(a.amount))},0);
+    var capitalEffect=arr('capitalMoves').filter(function(m){return flowIn(m.date)}).reduce(function(x,m){var type=String(m.type||''); var val=n(m.amount); if(type==='owner_add'||type==='loan_in'||type==='lend_repay')return x+val; if(type==='owner_withdraw'||type==='loan_repay'||type==='lend_out')return x-val; return x},0);
+    var liquidity=n(s.openingLiquidity)+customerReceipts+adjustments+capitalEffect-factoryPaid-businessPaid-housePaid;
+    var receivables=arr('clients').reduce(function(x,c){return x+Math.max(0,clientBalance(c.id))},0);
+    var factoryDue=arr('factories').reduce(function(x,f){return x+Math.max(0,factoryBalance(f.id))},0);
+    var totalAllSales=allOrders.reduce(function(x,o){return x+orderClientTotal(o)},0);
+    var totalAllCosts=allOrders.reduce(function(x,o){return x+orderFactoryTotal(o)},0);
+    return {settings:s,period:p,orderSales:orderSales,orderCosts:orderCosts,orderProfit:orderProfitSum,businessExpenses:businessExpenses,houseExpenses:housePeriod,profitAfterBusiness:profitAfterBusiness,profitAfterHouse:profitAfterHouse,customerReceipts:customerReceipts,factoryPaid:factoryPaid,businessPaid:businessPaid,housePaid:housePaid,adjustments:adjustments,capitalEffect:capitalEffect,liquidity:liquidity,receivables:receivables,factoryDue:factoryDue,capitalPosition:receivables-factoryDue+liquidity,totalAllSales:totalAllSales,totalAllCosts:totalAllCosts,totalAllProfit:totalAllSales-totalAllCosts};
+  }
+  function clientRows(){
+    return arr('clients').map(function(c){
+      var os=arr('orders').filter(function(o){return o.clientId===c.id});
+      var sales=os.reduce(function(s,o){return s+orderClientTotal(o)},0)+n(c.debt);
+      var profit=os.reduce(function(s,o){return s+orderProfit(o)},0);
+      var ev=paymentEventsForClient(c.id);
+      var paid=ev.reduce(function(s,e){return s+n(e.amount)},0);
+      var balance=clientBalance(c.id);
+      var avgPay=ev.length?paid/ev.length:0;
+      var last=ev.length?ev[ev.length-1].date:'';
+      var ago=daysAgo(last);
+      var ratio=sales>0?paid/sales*100:0;
+      var gap=averageGap(ev);
+      var liquidityImpact=Math.max(0,balance)-Math.max(0,profit);
+      var score=0;
+      if(balance>0)score+=Math.min(40,balance/1000);
+      if(ago==null)score+=balance>0?25:0; else score+=Math.min(25,ago*1.2);
+      if(ratio<50&&sales>0)score+=20; else if(ratio<75&&sales>0)score+=10;
+      if(liquidityImpact>0)score+=Math.min(15,liquidityImpact/1000);
+      score=Math.round(Math.min(100,score));
+      var rec=score>=70?'لا تبدأ أوردر جديد قبل تحصيل دفعة':score>=45?'تابعه خلال أيام واطلب دفعة':balance>0?'متابعة عادية':sales>0?'عميل جيد في السداد':'لا توجد بيانات كافية';
+      return {id:c.id,name:c.name||'بدون اسم',sales:sales,paid:paid,balance:balance,profit:profit,events:ev.length,avgPay:avgPay,last:last,ago:ago,ratio:ratio,gap:gap,liquidityImpact:liquidityImpact,score:score,rec:rec,orders:os.length};
+    }).sort(function(a,b){return (b.score*100000+b.balance)-(a.score*100000+a.balance)});
+  }
+  function factoryRows(){
+    return arr('factories').map(function(f){
+      var os=arr('orders').filter(function(o){return o.factoryId===f.id});
+      var cost=os.reduce(function(s,o){return s+orderFactoryTotal(o)},0)+n(f.debt);
+      var tr=arr('transfers').filter(function(t){return t.factoryId===f.id}).sort(function(a,b){return String(a.date||'').localeCompare(String(b.date||''))});
+      var paid=tr.reduce(function(s,t){return s+n(t.amount)},0);
+      var due=cost-paid;
+      var last=tr.length?tr[tr.length-1].date:'';
+      return {id:f.id,name:f.name||'بدون اسم',cost:cost,paid:paid,due:due,last:last,orders:os.length};
+    }).sort(function(a,b){return b.due-a.due});
+  }
+  function actionItems(c,clients,factories){
+    var out=[];
+    var high=clients.filter(function(x){return x.balance>0}).slice(0,5);
+    high.forEach(function(x){out.push('تابع '+x.name+' — عليه '+money(x.balance)+'، '+(x.ago==null?'ولا توجد دفعة حديثة واضحة':'آخر دفعة منذ '+x.ago+' يوم')+'. '+x.rec+'.')});
+    if(c.houseExpenses>0)out.push('مصروفات البيت في الفترة '+money(c.houseExpenses)+'؛ ربحك بعد مصروفات البيت أصبح '+money(c.profitAfterHouse)+'.');
+    if(c.liquidity<0)out.push('السيولة الفعلية سالبة: '+money(c.liquidity)+' — راجع التحصيل قبل أي التزام جديد.');
+    else if(c.liquidity<c.factoryDue*0.15&&c.factoryDue>0)out.push('السيولة قليلة مقارنة بالتزامات المصانع؛ الأولوية للتحصيل من العملاء الأعلى مديونية.');
+    var f=factories.find(function(x){return x.due>0}); if(f)out.push('راجع تسوية مصنع '+f.name+' لأن المتبقي عليه '+money(f.due)+' على مستوى المصنع إجمالاً.');
+    if(!out.length)out.push('الوضع مستقر حاليًا: لا توجد تنبيهات حرجة من الداتا الحالية.');
+    return out.slice(0,8);
+  }
+  function metric(label,val,sub,cls){return '<div class="hp-v56-metric '+(cls||'')+'"><span>'+esc(label)+'</span><b>'+esc(val)+'</b><small>'+esc(sub||'')+'</small></div>'}
+  function row3(name,a,b,c,btn){return '<div class="hp-v56-row"><div><b>'+esc(name)+'</b>'+(btn||'')+'</div><div>'+a+'</div><div>'+b+'</div><div>'+c+'</div></div>'}
+  function categoryOptions(v){var cats=['أكل','مواصلات','إيجار','فواتير','شخصي','طوارئ','أخرى'];return cats.map(function(c){return '<option '+(c===v?'selected':'')+'>'+esc(c)+'</option>'}).join('')}
+  function buildHtml(){
+    var c=calcAll(), clients=clientRows(), factories=factoryRows(), topClients=clients.slice(0,10), topFactories=factories.slice(0,6), actions=actionItems(c,clients,factories);
+    var s=c.settings;
+    var rowsClients=topClients.length?topClients.map(function(x){var last=x.ago==null?'—':x.ago+' يوم';var gap=x.gap==null?'—':Math.round(x.gap)+' يوم';var btn='<button type="button" class="btn small blue" data-hp-v56-client="'+attr(x.id)+'">كشف</button>';return '<div class="hp-v56-client-card"><div class="hp-v56-client-top"><div><b>'+esc(x.name)+'</b><small>Risk '+x.score+'/100 · '+esc(x.rec)+'</small></div>'+btn+'</div><div class="hp-v56-client-grid">'+metric('مديونية',money(x.balance),'المتبقي الحالي',x.balance>0?'bad':'ok')+metric('متوسط الدفعة',money(x.avgPay),x.events+' دفعات')+metric('آخر دفعة',last,'متوسط بين الدفعات: '+gap)+metric('نسبة التحصيل',pct(x.ratio),'إجمالي مدفوع / طلبات')+metric('تأثير السيولة',money(x.liquidityImpact),'مديونية ناقص ربح العميل',x.liquidityImpact>0?'bad':'ok')+metric('ربح العميل',money(x.profit),'فرق البيع والتكلفة')+'</div></div>'}).join(''):'<div class="hp-v56-empty">لا توجد بيانات عملاء كافية.</div>';
+    var rowsFactories=topFactories.length?topFactories.map(function(f){var last=f.last?('آخر دفعة '+f.last):'لا توجد دفعات';var btn='<button type="button" class="btn small" data-hp-v56-factory="'+attr(f.id)+'">كشف</button>';return row3(f.name,money(f.cost),money(f.paid),'<b class="'+(f.due>0?'hp-v56-red':'hp-v56-green')+'">'+money(f.due)+'</b><small>'+esc(last)+'</small>',btn)}).join(''):'<div class="hp-v56-empty">لا توجد بيانات مصانع.</div>';
+    var houseRows=arr('houseExpenses').slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))}).slice(0,12).map(function(e){return '<div class="hp-v56-exp-row"><div><b>'+esc(e.category||'أخرى')+'</b><small>'+esc(e.date||'')+(e.note?' · '+esc(e.note):'')+'</small></div><b>'+money(e.amount)+'</b><div><button type="button" class="btn small" data-hp-v56-edit-house="'+attr(e.id)+'">تعديل</button><button type="button" class="btn small red-out" data-hp-v56-del-house="'+attr(e.id)+'">حذف</button></div></div>'}).join('')||'<div class="hp-v56-empty">لا توجد مصروفات بيت مسجلة.</div>';
+    var adjRows=arr('walletAdjustments').slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))}).slice(0,8).map(function(e){return '<div class="hp-v56-exp-row"><div><b>'+(e.type==='out'?'خروج سيولة':'دخول سيولة')+'</b><small>'+esc(e.date||'')+(e.note?' · '+esc(e.note):'')+'</small></div><b class="'+(e.type==='out'?'hp-v56-red':'hp-v56-green')+'">'+(e.type==='out'?'-':'+')+money(e.amount)+'</b><div><button type="button" class="btn small red-out" data-hp-v56-del-adj="'+attr(e.id)+'">حذف</button></div></div>'}).join('')||'<div class="hp-v56-empty">لا توجد تسويات يدوية.</div>';
+    return '<div class="hp-v56-head"><div><div class="sec-label">V56 Capital & Wallet Intelligence</div><h2>رأس المال والسيولة</h2><p>الربح هنا = قيمة أوردر العميل - تكلفة أوردر المصنع. مصروفات البيت تخصم في خانة ربح بعد مصروفات البيت وتخصم من السيولة الفعلية.</p></div><button type="button" class="btn blue" data-hp-v56-export="1">CSV</button></div>'+
+      '<div class="hp-v56-panel"><h3>إعدادات السيولة والفترة</h3><div class="hp-v56-form-grid"><label>رصيد افتتاحي للسيولة<input id="hp-v56-opening" type="number" step="0.01" value="'+attr(s.openingLiquidity)+'"></label><label>من تاريخ<input id="hp-v56-opening-date" type="date" value="'+attr(s.openingDate)+'"></label><label>تقرير من<input id="hp-v56-from" type="date" value="'+attr(c.period.from)+'"></label><label>تقرير إلى<input id="hp-v56-to" type="date" value="'+attr(c.period.to)+'"></label></div><button type="button" class="btn green" data-hp-v56-save-settings="1">حفظ وإعادة الحساب</button></div>'+
+      '<div class="hp-v56-metrics">'+metric('السيولة الفعلية الآن',money(c.liquidity),'رصيد افتتاحي + تحصيل - مصانع - مصروفات - بيت ± تسويات',c.liquidity>=0?'ok':'bad')+metric('ربح الأوردرات',money(c.orderProfit),'مبيعات العملاء - تكلفة المصانع',c.orderProfit>=0?'ok':'bad')+metric('ربح بعد مصروفات البيت',money(c.profitAfterHouse),'بعد مصروفات الشغل والبيت',c.profitAfterHouse>=0?'ok':'bad')+metric('مع العملاء',money(c.receivables),'مديونية العملاء الحالية','bad')+metric('مطلوب للمصانع',money(c.factoryDue),'تقديري على مستوى المصنع','warn')+metric('صافي موقف رأس المال',money(c.capitalPosition),'سيولة + عملاء - مصانع',c.capitalPosition>=0?'ok':'bad')+'</div>'+
+      '<div class="hp-v56-grid2"><div class="hp-v56-panel"><h3>ماذا أفعل اليوم؟</h3><ol class="hp-v56-actions">'+actions.map(function(a){return '<li>'+esc(a)+'</li>'}).join('')+'</ol></div><div class="hp-v56-panel"><h3>تفصيل السيولة</h3>'+row3('تحصيلات العملاء',money(c.customerReceipts),'من تاريخ الرصيد', '')+row3('مدفوع للمصانع',money(c.factoryPaid),'إجمالي تحويلات', '')+row3('مصروفات الشغل',money(c.businessPaid),'مصروفات مسجلة', '')+row3('مصروفات البيت',money(c.housePaid),'تخصم من السيولة', '')+row3('تسويات + رأس مال',money(c.adjustments+c.capitalEffect),'إضافات/سحوبات', '')+'</div></div>'+
+      '<div class="hp-v56-panel"><h3>مصروفات البيت</h3><div class="hp-v56-form-grid"><input type="hidden" id="hp-v56-house-id"><label>التاريخ<input id="hp-v56-house-date" type="date" value="'+today()+'"></label><label>التصنيف<select id="hp-v56-house-cat">'+categoryOptions('')+'</select></label><label>المبلغ<input id="hp-v56-house-amt" type="number" step="0.01"></label><label>ملاحظة<input id="hp-v56-house-note" placeholder="اختياري"></label></div><div class="btn-row"><button type="button" class="btn green" data-hp-v56-save-house="1">حفظ مصروف البيت</button><button type="button" class="btn" data-hp-v56-clear-house="1">تفريغ</button></div><div class="hp-v56-list">'+houseRows+'</div></div>'+
+      '<div class="hp-v56-panel"><h3>تسويات يدوية للسيولة</h3><div class="hp-v56-form-grid"><label>التاريخ<input id="hp-v56-adj-date" type="date" value="'+today()+'"></label><label>النوع<select id="hp-v56-adj-type"><option value="in">دخول سيولة</option><option value="out">خروج سيولة</option></select></label><label>المبلغ<input id="hp-v56-adj-amt" type="number" step="0.01"></label><label>ملاحظة<input id="hp-v56-adj-note" placeholder="مثال: دخل خارجي / سحب شخصي"></label></div><button type="button" class="btn blue" data-hp-v56-save-adj="1">حفظ التسوية</button><div class="hp-v56-list">'+adjRows+'</div></div>'+
+      '<div class="hp-v56-panel"><h3>أولوية تحصيل العملاء</h3>'+rowsClients+'</div>'+
+      '<div class="hp-v56-panel"><h3>المصانع والتسويات</h3><p class="hp-v56-note">الدفع للمصنع عندك غير مربوط بالأوردر؛ لذلك التحليل هنا على مستوى المصنع إجمالاً وليس على مستوى أوردر محدد.</p><div class="hp-v56-table-head"><span>المصنع</span><span>إجمالي مستحق</span><span>مدفوع</span><span>المتبقي</span></div>'+rowsFactories+'</div>';
+  }
+  function ensureStyle(){if(byId(STYLE_ID))return;var st=document.createElement('style');st.id=STYLE_ID;st.textContent='.hp-v56-page{padding:0 0 90px}.hp-v56-head,.hp-v56-panel{background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 1px 0 rgba(0,0,0,.04)}.hp-v56-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.hp-v56-head h2{font-size:28px;margin:4px 0}.hp-v56-head p,.hp-v56-note{color:#5b6b83;font-weight:900;line-height:1.7}.hp-v56-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.hp-v56-form-grid label{font-weight:900;color:#24364f}.hp-v56-form-grid input,.hp-v56-form-grid select{width:100%;margin-top:5px;border:2px solid #d7e1ef;border-radius:12px;padding:11px;font-weight:900;background:#fff}.hp-v56-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0}.hp-v56-metric{border:2px solid #dbe3ee;border-radius:16px;padding:13px;background:#f8fafc}.hp-v56-metric span{display:block;color:#667085;font-size:13px;font-weight:900}.hp-v56-metric b{display:block;font-size:22px;margin:7px 0;color:#111}.hp-v56-metric small{font-weight:900;color:#5b6b83;line-height:1.5}.hp-v56-metric.ok b,.hp-v56-green{color:#067a46!important}.hp-v56-metric.bad b,.hp-v56-red{color:#b42318!important}.hp-v56-metric.warn b{color:#b77900!important}.hp-v56-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hp-v56-actions{font-weight:900;line-height:2}.hp-v56-row,.hp-v56-exp-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:10px;align-items:center;border:1px solid #e6edf5;border-radius:14px;padding:10px;margin-bottom:8px}.hp-v56-exp-row{grid-template-columns:1fr auto auto}.hp-v56-row small,.hp-v56-exp-row small{display:block;color:#667085;font-weight:900;margin-top:4px}.hp-v56-client-card{border:1px solid #e6edf5;border-radius:16px;padding:12px;margin-bottom:10px;background:#fbfdff}.hp-v56-client-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}.hp-v56-client-top b{font-size:18px}.hp-v56-client-top small{display:block;color:#5b6b83;font-weight:900;margin-top:4px}.hp-v56-client-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.hp-v56-table-head{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:10px;color:#667085;font-weight:900;padding:0 10px 8px}.hp-v56-empty{padding:14px;border:1px dashed #bdc8d9;border-radius:14px;color:#667085;font-weight:900}.navbar .nb.hp-v56-nav i{font-size:20px}@media(max-width:760px){.hp-v56-head{display:block}.hp-v56-grid2{grid-template-columns:1fr}.hp-v56-row,.hp-v56-table-head{grid-template-columns:1fr}.hp-v56-exp-row{grid-template-columns:1fr}.hp-v56-page{padding-bottom:120px}}';document.head.appendChild(st)}
+  function ensurePage(){ensureStyle();var content=q('.content');if(!content)return null;var page=byId(PAGE_ID);if(!page){page=document.createElement('div');page.className='page hp-v56-page';page.id=PAGE_ID;content.appendChild(page)}var nav=q('.navbar');if(nav&&!byId(NAV_ID)){var btn=document.createElement('button');btn.id=NAV_ID;btn.className='nb hp-v56-nav';btn.type='button';btn.innerHTML='<i class="ti ti-wallet"></i>السيولة';btn.addEventListener('click',function(){try{showPage(PAGE,btn)}catch(e){}});var reports=qa('.nb',nav).find(function(b){return /تقارير/.test(b.textContent||'')});if(reports&&reports.nextSibling)nav.insertBefore(btn,reports.nextSibling);else nav.appendChild(btn)}return page}
+  function render(){try{var page=ensurePage();if(!page)return;ensureData();page.innerHTML=buildHtml()}catch(e){log('V56_RENDER_ERROR',String(e&&e.message||e),'render');console.error(e)}}
+  function clearHouseForm(){['hp-v56-house-id','hp-v56-house-amt','hp-v56-house-note'].forEach(function(id){var x=byId(id);if(x)x.value=''});var d=byId('hp-v56-house-date');if(d)d.value=today()}
+  function saveSettings(){var s=ensureData();s.openingLiquidity=n(byId('hp-v56-opening')&&byId('hp-v56-opening').value);s.openingDate=dateOf(byId('hp-v56-opening-date')&&byId('hp-v56-opening-date').value)||today();s.reportFrom=dateOf(byId('hp-v56-from')&&byId('hp-v56-from').value)||monthStart();s.reportTo=dateOf(byId('hp-v56-to')&&byId('hp-v56-to').value)||today();saveData('settings');render();toast('تم حفظ إعدادات السيولة وإعادة الحساب')}
+  function saveHouse(){ensureData();var id=String(byId('hp-v56-house-id')&&byId('hp-v56-house-id').value||'');var amount=n(byId('hp-v56-house-amt')&&byId('hp-v56-house-amt').value);if(amount<=0){toast('أدخل مبلغ مصروف البيت');return}var item={id:id||uid(),date:dateOf(byId('hp-v56-house-date')&&byId('hp-v56-house-date').value)||today(),category:(byId('hp-v56-house-cat')&&byId('hp-v56-house-cat').value)||'أخرى',amount:amount,note:(byId('hp-v56-house-note')&&byId('hp-v56-house-note').value)||''};var i=DB.houseExpenses.findIndex(function(x){return x.id===item.id});if(i>=0)DB.houseExpenses[i]=item;else DB.houseExpenses.push(item);saveData('house-expense');render();toast('تم حفظ مصروف البيت')}
+  function editHouse(id){var e=arr('houseExpenses').find(function(x){return x.id===id});if(!e)return;var h=byId('hp-v56-house-id'),d=byId('hp-v56-house-date'),c=byId('hp-v56-house-cat'),a=byId('hp-v56-house-amt'),n0=byId('hp-v56-house-note');if(h)h.value=e.id;if(d)d.value=dateOf(e.date)||today();if(c)c.value=e.category||'أخرى';if(a)a.value=n(e.amount)||'';if(n0)n0.value=e.note||'';try{a&&a.focus()}catch(_){}}
+  function delHouse(id){if(!confirm('حذف مصروف البيت؟'))return;DB.houseExpenses=arr('houseExpenses').filter(function(x){return x.id!==id});saveData('delete-house');render();toast('تم الحذف')}
+  function saveAdjustment(){ensureData();var amount=n(byId('hp-v56-adj-amt')&&byId('hp-v56-adj-amt').value);if(amount<=0){toast('أدخل مبلغ التسوية');return}DB.walletAdjustments.push({id:uid(),date:dateOf(byId('hp-v56-adj-date')&&byId('hp-v56-adj-date').value)||today(),type:(byId('hp-v56-adj-type')&&byId('hp-v56-adj-type').value)||'in',amount:amount,note:(byId('hp-v56-adj-note')&&byId('hp-v56-adj-note').value)||''});saveData('wallet-adjustment');render();toast('تم حفظ التسوية')}
+  function delAdjustment(id){if(!confirm('حذف التسوية؟'))return;DB.walletAdjustments=arr('walletAdjustments').filter(function(x){return x.id!==id});saveData('delete-adjustment');render();toast('تم الحذف')}
+  function openClient(id){try{if(typeof window.openClientDetail==='function')window.openClientDetail(id)}catch(e){log('V56_CLIENT_OPEN_ERROR',String(e&&e.message||e),'openClient')}}
+  function openFactory(id){try{if(typeof window.openFactoryDetail==='function')window.openFactoryDetail(id)}catch(e){log('V56_FACTORY_OPEN_ERROR',String(e&&e.message||e),'openFactory')}}
+  function csvCell(v){v=String(v==null?'':v);return '"'+v.replace(/"/g,'""')+'"'}
+  function exportCsv(){try{var c=calcAll(), clients=clientRows();var rows=[['Metric','Value'],['السيولة الفعلية',c.liquidity],['ربح الأوردرات',c.orderProfit],['ربح بعد مصروفات البيت',c.profitAfterHouse],['مديونية العملاء',c.receivables],['مطلوب للمصانع',c.factoryDue],[],['Client','Debt','Paid','Avg Payment','Last Payment Days','Collection %','Risk','Recommendation']];clients.forEach(function(x){rows.push([x.name,x.balance,x.paid,x.avgPay,x.ago==null?'':x.ago,x.ratio,x.score,x.rec])});var blob=new Blob([rows.map(function(r){return r.map(csvCell).join(',')}).join('\n')],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=EXPORT_NAME;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},400)}catch(e){log('V56_EXPORT_ERROR',String(e&&e.message||e),'exportCsv');toast('تعذر تصدير CSV')}}
+  function bind(){if(window.__HP_V56_EVENTS)return;window.__HP_V56_EVENTS=true;document.addEventListener('click',function(ev){var t=ev.target&&ev.target.closest?ev.target.closest('[data-hp-v56-save-settings],[data-hp-v56-save-house],[data-hp-v56-clear-house],[data-hp-v56-edit-house],[data-hp-v56-del-house],[data-hp-v56-save-adj],[data-hp-v56-del-adj],[data-hp-v56-client],[data-hp-v56-factory],[data-hp-v56-export]'):null;if(!t)return;try{ev.preventDefault();ev.stopPropagation()}catch(e){}if(t.hasAttribute('data-hp-v56-save-settings'))return saveSettings();if(t.hasAttribute('data-hp-v56-save-house'))return saveHouse();if(t.hasAttribute('data-hp-v56-clear-house'))return clearHouseForm();if(t.hasAttribute('data-hp-v56-edit-house'))return editHouse(t.getAttribute('data-hp-v56-edit-house'));if(t.hasAttribute('data-hp-v56-del-house'))return delHouse(t.getAttribute('data-hp-v56-del-house'));if(t.hasAttribute('data-hp-v56-save-adj'))return saveAdjustment();if(t.hasAttribute('data-hp-v56-del-adj'))return delAdjustment(t.getAttribute('data-hp-v56-del-adj'));if(t.hasAttribute('data-hp-v56-client'))return openClient(t.getAttribute('data-hp-v56-client'));if(t.hasAttribute('data-hp-v56-factory'))return openFactory(t.getAttribute('data-hp-v56-factory'));if(t.hasAttribute('data-hp-v56-export'))return exportCsv();},true)}
+  function wrapShowPage(){var old=window.showPage;if(typeof old!=='function'||old.__hpV56)return;var w=function(name,btn){ensurePage();var r=old.apply(this,arguments);if(name===PAGE||String(name)==='capital-intelligence'){setTimeout(render,80);setTimeout(render,450)}return r};w.__hpV56=true;w.__hpOriginal=old;window.showPage=w}
+  function wrapRefresh(){var old=window.refreshAll;if(typeof old==='function'&&!old.__hpV56){var w=function(){var r=old.apply(this,arguments);try{if((window.activePage||'')===PAGE)setTimeout(render,120)}catch(e){}return r};w.__hpV56=true;w.__hpOriginal=old;window.refreshAll=w}}
+  function boot(){try{ensureData();ensurePage();bind();wrapShowPage();wrapRefresh();setTimeout(function(){if((window.activePage||'')===PAGE)render()},500);console.log('Haydar Pack V56 Capital & Wallet Intelligence loaded',VERSION)}catch(e){log('V56_BOOT_ERROR',String(e&&e.message||e),'boot');console.error(e)}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500)});else setTimeout(boot,500);
+  window.HP_V56_CAPITAL_WALLET={version:VERSION,siteVersion:SITE_VERSION,render:render,calc:calcAll,clients:clientRows,factories:factoryRows,exportCsv:exportCsv};
 })();

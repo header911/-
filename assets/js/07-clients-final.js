@@ -17,7 +17,7 @@
 */
 (function(){
   'use strict';
-  var VERSION='55.3.0-documents-print-stable';
+  var VERSION='56.0.0-capital-wallet-intelligence';
   var state={filter:'all',sort:'activity'};
 
   function $(id){return document.getElementById(id)}
@@ -210,8 +210,8 @@
    Loaded last on purpose. It wraps final write functions only, without changing calculations or data model. */
 (function(){
   'use strict';
-  var VERSION='55.3.0-documents-print-stable';
-  var SITE_VERSION='55_3docstable';
+  var VERSION='56.0.0-capital-wallet-intelligence';
+  var SITE_VERSION='56capitalwallet';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
@@ -313,8 +313,8 @@
 /* ===== V50 Backup Center Pro + Mobile Back Guard ===== */
 (function(){
   'use strict';
-  var VERSION='55.3.0-documents-print-stable';
-  var SITE_VERSION='55_3docstable';
+  var VERSION='56.0.0-capital-wallet-intelligence';
+  var SITE_VERSION='56capitalwallet';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}
