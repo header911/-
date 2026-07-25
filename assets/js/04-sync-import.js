@@ -17,7 +17,7 @@
 (function(){
   'use strict';
 
-  var VERSION='57.5.0-print-reliability';
+  var VERSION='57.5.0-print-layout-repair';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -187,7 +187,7 @@
       var url=backendUrl(), iframeName='hp_v37_post_'+Date.now();
       var iframe=document.createElement('iframe');iframe.name=iframeName;iframe.style.display='none';
       var form=document.createElement('form');form.method='POST';form.action=url;form.target=iframeName;form.style.display='none';form.acceptCharset='UTF-8';
-      fields=fields||{};fields.action=action;fields.appVersion='57.5.0-print-reliability';fields.siteVersion='57_5printfinal';
+      fields=fields||{};fields.action=action;fields.appVersion='57.5.0-print-layout-repair';fields.siteVersion='57_5printfix';
       Object.keys(fields).forEach(function(k){var t=document.createElement('textarea');t.name=k;t.value=String(fields[k]==null?'':fields[k]);form.appendChild(t)});
       document.body.appendChild(iframe);document.body.appendChild(form);form.submit();
       setTimeout(function(){try{form.remove();iframe.remove()}catch(e){}resolve({ok:true})},2300);
@@ -432,10 +432,7 @@
     if(pendingData())pushPending(false);
     else if(navigator.onLine)pull(false);
     else setSync('err','أوفلاين — تم فتح آخر نسخة محفوظة على الجهاز');
-    clearInterval(metaTimer);metaTimer=setInterval(function(){
-      if(document.hidden||!navigator.onLine)return;
-      if(pendingData())pushPending(false);else checkMeta(false);
-    },60000);
+    clearInterval(metaTimer);metaTimer=setInterval(function(){if(pendingData())pushPending(false);else checkMeta(false)},20000);
     try{if(typeof autoRefreshCurrentMonth==='function'){setInterval(autoRefreshCurrentMonth,60*60*1000);setTimeout(autoRefreshCurrentMonth,1500)}}catch(e){}
   }
 

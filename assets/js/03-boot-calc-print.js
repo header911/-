@@ -63,41 +63,39 @@
 (function(){
   'use strict';
   var STAGE='31-stage3-docs-test';
-  function n(v){var x=parseFloat(v);return isFinite(x)?x:0}
-  function cash(v){v=n(v);return Math.round((v+Number.EPSILON)*100)/100}
+  function n(v){var x=parseFloat(v);return isNaN(x)?0:x}
   function arr(name){return (window.DB && Array.isArray(DB[name])) ? DB[name] : []}
   function byId(id){return document.getElementById(id)}
   function money(v){try{return n(v).toLocaleString('ar-EG',{minimumFractionDigits:0,maximumFractionDigits:2})+' ج'}catch(e){return String(n(v))+' ج'}}
   function orderDiscount(o){return Math.max(0,n(o && (o.invoiceDiscount!=null ? o.invoiceDiscount : o.discount)))}
   function billQtyCentral(o){o=o||{}; return n(o.fQty)>0 ? n(o.fQty) : n(o.qty)}
-  function clientGrossForOrder(o){o=o||{}; return cash((billQtyCentral(o)*n(o.price))+n(o.aklashe))}
-  function clientNetForOrder(o){return cash(Math.max(0,clientGrossForOrder(o)-orderDiscount(o)))}
-  function factoryTotalForOrderCentral(o){o=o||{}; return cash((n(o.fQty)*n(o.fPrice))+n(o.fAk))}
-  function orderExpenseTotal(orderId){return cash(arr('expenses').filter(function(e){return e.orderId===orderId}).reduce(function(s,e){return s+n(e.amount)},0))}
-  function profitForOrderCentral(o){o=o||{}; return cash(clientNetForOrder(o)-factoryTotalForOrderCentral(o)-orderExpenseTotal(o.id))}
+  function clientGrossForOrder(o){o=o||{}; return (billQtyCentral(o)*n(o.price))+n(o.aklashe)}
+  function clientNetForOrder(o){return Math.max(0,clientGrossForOrder(o)-orderDiscount(o))}
+  function factoryTotalForOrderCentral(o){o=o||{}; return (n(o.fQty)*n(o.fPrice))+n(o.fAk)}
+  function orderExpenseTotal(orderId){return arr('expenses').filter(function(e){return e.orderId===orderId}).reduce(function(s,e){return s+n(e.amount)},0)}
+  function profitForOrderCentral(o){o=o||{}; return clientNetForOrder(o)-factoryTotalForOrderCentral(o)-orderExpenseTotal(o.id)}
   function clientOrders(cid){return arr('orders').filter(function(o){return o.clientId===cid})}
-  function clientTotalCentral(cid){return cash(clientOrders(cid).reduce(function(s,o){return s+clientNetForOrder(o)},0))}
-  function clientDepositsCentral(cid){return cash(clientOrders(cid).reduce(function(s,o){return s+n(o.deposit)},0))}
-  function clientPaymentsOnly(cid){return cash(arr('payments').filter(function(p){return p.clientId===cid}).reduce(function(s,p){return s+n(p.amount)},0))}
-  function clientPaidCentral(cid){return cash(clientPaymentsOnly(cid)+clientDepositsCentral(cid))}
-  function clientBalanceCentral(cid){var c=arr('clients').find(function(x){return x.id===cid})||{}; return cash(clientTotalCentral(cid)+n(c.debt)-clientPaidCentral(cid))}
+  function clientTotalCentral(cid){return clientOrders(cid).reduce(function(s,o){return s+clientNetForOrder(o)},0)}
+  function clientDepositsCentral(cid){return clientOrders(cid).reduce(function(s,o){return s+n(o.deposit)},0)}
+  function clientPaymentsOnly(cid){return arr('payments').filter(function(p){return p.clientId===cid}).reduce(function(s,p){return s+n(p.amount)},0)}
+  function clientPaidCentral(cid){return clientPaymentsOnly(cid)+clientDepositsCentral(cid)}
+  function clientBalanceCentral(cid){var c=arr('clients').find(function(x){return x.id===cid})||{}; return clientTotalCentral(cid)+n(c.debt)-clientPaidCentral(cid)}
   function factoryOrders(fid){return arr('orders').filter(function(o){return o.factoryId===fid})}
-  function factoryTotalCentral(fid){return cash(factoryOrders(fid).reduce(function(s,o){return s+factoryTotalForOrderCentral(o)},0))}
-  function factoryPaidCentral(fid){return cash(arr('transfers').filter(function(t){return t.factoryId===fid}).reduce(function(s,t){return s+n(t.amount)},0))}
-  function factoryBalanceCentral(fid){var f=arr('factories').find(function(x){return x.id===fid})||{}; return cash(factoryTotalCentral(fid)+n(f.debt)-factoryPaidCentral(fid))}
+  function factoryTotalCentral(fid){return factoryOrders(fid).reduce(function(s,o){return s+factoryTotalForOrderCentral(o)},0)}
+  function factoryPaidCentral(fid){return arr('transfers').filter(function(t){return t.factoryId===fid}).reduce(function(s,t){return s+n(t.amount)},0)}
+  function factoryBalanceCentral(fid){var f=arr('factories').find(function(x){return x.id===fid})||{}; return factoryTotalCentral(fid)+n(f.debt)-factoryPaidCentral(fid)}
   function periodOrdersCentral(period,month){return arr('orders').filter(function(o){return (typeof dateMatches==='function') ? dateMatches(o.date,period,month) : true})}
   function periodExpensesCentral(period,month){return arr('expenses').filter(function(e){return (typeof dateMatches==='function') ? dateMatches(e.date,period,month) : true})}
   function periodTotalsCentral(period,month){
     var orders=periodOrdersCentral(period,month);
-    var income=cash(orders.reduce(function(s,o){return s+clientNetForOrder(o)},0));
-    var fcost=cash(orders.reduce(function(s,o){return s+factoryTotalForOrderCentral(o)},0));
-    var expenses=cash(periodExpensesCentral(period,month).reduce(function(s,e){return s+n(e.amount)},0));
-    return {orders:orders,income:income,fcost:fcost,expenses:expenses,profit:cash(income-fcost-expenses)};
+    var income=orders.reduce(function(s,o){return s+clientNetForOrder(o)},0);
+    var fcost=orders.reduce(function(s,o){return s+factoryTotalForOrderCentral(o)},0);
+    var expenses=periodExpensesCentral(period,month).reduce(function(s,e){return s+n(e.amount)},0);
+    return {orders:orders,income:income,fcost:fcost,expenses:expenses,profit:income-fcost-expenses};
   }
   window.HP_CALC={
     version:STAGE,
     num:n,
-    moneyRound:cash,
     orderDiscount:orderDiscount,
     billQty:billQtyCentral,
     clientGrossForOrder:clientGrossForOrder,
@@ -202,7 +200,7 @@
   function sizeText(o){o=o||{};if(o.size)return o.size;var w=String(o.width||'').trim(),h=String(o.height||'').trim();return (w||h)?((w||'—')+' × '+(h||'—')):'—'}
   function colorCount(o){return (o&&(o.colorCount||o.colorsCount||o.printColors||o.color_count))||'1'}
   function printFace(o){return (o&&(o.face||o.printFace||o.printSide))||'وجه واحد'}
-  function documentCss(){return '@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{margin:0;background:#fff;color:#000;font-family:Arial,Tahoma,sans-serif;font-size:10.5px}.sheet{width:100%;padding:1mm}.hp-doc-header{direction:ltr;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #0b2442;padding-bottom:6px;margin-bottom:9px}.hp-brand-left,.hp-brand-right{display:flex;align-items:center;gap:10px;min-width:300px}.hp-brand-left{direction:ltr;text-align:left;justify-content:flex-start}.hp-brand-right{direction:rtl;text-align:right;justify-content:flex-start;flex-direction:row-reverse}.hp-brand-left img,.hp-brand-right img{width:72px;height:72px;object-fit:contain;display:block}.hp-en-title{font-size:27px;font-weight:900;line-height:1;color:#0b2442;letter-spacing:.2px}.hp-en-sub{font-size:11px;font-weight:900;color:#111;margin-top:7px;white-space:nowrap}.hp-ar-title{font-size:30px;font-weight:900;line-height:1;color:#ad7b25;letter-spacing:.2px}.hp-ar-sub{font-size:12px;font-weight:900;color:#111;margin-top:7px;white-space:nowrap}.doc-title{text-align:center;font-size:20px;font-weight:900;text-decoration:underline;margin:4px 0 10px}.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px 18px;margin-bottom:10px}.meta div{display:flex;justify-content:space-between;border-bottom:1px dotted #777;padding:3px 0}.meta b{min-width:78px}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{border:1.2px solid #000;padding:4px 3px;text-align:center;vertical-align:middle;white-space:normal}th{background:#d9d9d9;font-weight:900}.totals{width:330px;margin-top:8px;margin-right:auto}.totals td{font-weight:900}.section-title{font-size:13px;font-weight:900;margin:12px 0 5px;text-decoration:underline}.terms,.note{font-size:11px;font-weight:900;line-height:1.6;margin-top:9px;text-align:right}.foot{position:fixed;bottom:5mm;left:8mm;right:8mm;font-size:9px;display:flex;justify-content:space-between;border-top:1px solid #000;padding-top:3px}.no-print{position:fixed;top:6px;left:6px;display:flex;gap:6px;z-index:10}.no-print button{font-size:13px;padding:8px 12px;border:2px solid #000;background:#fff;font-weight:900}@media print{.no-print{display:none}.sheet{padding:0}}'}
+  function documentCss(){return '@page{size:A4 landscape;margin:7mm}*{box-sizing:border-box}html,body{margin:0!important;padding:0!important;background:#fff;color:#000;font-family:Arial,Tahoma,sans-serif;font-size:9.4px;width:297mm;min-width:297mm;max-width:297mm;overflow:visible!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{direction:rtl;width:283mm;max-width:283mm;margin:0 auto!important;padding:0!important;overflow:visible}.hp-doc-header{direction:ltr;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2.4px solid #0b2442;padding-bottom:4px;margin-bottom:7px;width:100%}.hp-brand-left,.hp-brand-right{display:flex;align-items:center;gap:8px;max-width:45%}.hp-brand-left{direction:ltr;text-align:left;justify-content:flex-start}.hp-brand-right{direction:rtl;text-align:right;justify-content:flex-start;flex-direction:row-reverse}.hp-brand-left img,.hp-brand-right img{width:48px;height:48px;object-fit:contain;display:block}.hp-en-title{font-size:19px;font-weight:900;line-height:1;color:#0b2442}.hp-en-sub{font-size:9px;font-weight:900;color:#111;margin-top:3px;white-space:nowrap}.hp-ar-title{font-size:21px;font-weight:900;line-height:1;color:#ad7b25}.hp-ar-sub{font-size:9px;font-weight:900;color:#111;margin-top:3px;white-space:nowrap}.doc-title{text-align:center;font-size:17px;font-weight:900;text-decoration:underline;margin:4px 0 7px}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:3px 10px;margin-bottom:6px}.meta div{display:flex;justify-content:space-between;border-bottom:1px dotted #777;padding:2px 0}.meta b{min-width:58px;white-space:nowrap}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #000;padding:3px 2px;text-align:center;vertical-align:middle;white-space:normal;word-break:break-word;overflow-wrap:anywhere;font-size:8.8px;line-height:1.25}th{background:#e7edf8;font-weight:900}.totals{width:72mm;margin-top:7px;margin-right:auto}.totals td{font-weight:900;font-size:9.2px}.section-title{font-size:11px;font-weight:900;margin:9px 0 4px;text-decoration:underline}.terms,.note{font-size:9.2px;font-weight:900;line-height:1.55;margin-top:8px;text-align:right}.foot{display:none!important}.no-print{position:fixed;top:6px;left:6px;display:flex;gap:6px;z-index:10}.no-print button{font-size:13px;padding:8px 12px;border:2px solid #000;background:#fff;font-weight:900}@media print{.no-print{display:none!important}.sheet{width:283mm!important;max-width:283mm!important;margin:0 auto!important;padding:0!important}}'}
   function headerHtml(){return '<div class="hp-doc-header"><div class="hp-brand-left"><img src="'+logo()+'" alt="Haydar Pack"><div><div class="hp-en-title">Haydarpack</div><div class="hp-en-sub">Eco-friendly bags &amp; printed packaging</div></div></div><div class="hp-brand-right"><img src="'+logo()+'" alt="حيدر باك"><div><div class="hp-ar-title">حيدر باك</div><div class="hp-ar-sub">شنط قماش غير منسوجة صديقة للبيئة</div></div></div></div>'}
   function metaHtml(rows){return '<div class="meta">'+rows.map(function(r){return '<div><b>'+esc(r[0])+'</b><span>'+esc(r[1]||'')+'</span></div>'}).join('')+'</div>'}
   function baseDoc(title,no,meta,head,body,totals,extra){return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+esc(no+' - '+title+' - Haydar Pack')+'</title><style>'+documentCss()+'</style></head><body><div class="no-print"><button onclick="window.print()">طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><div class="sheet">'+headerHtml()+'<div class="doc-title">'+esc(title)+'</div>'+meta+'<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>'+totals+(extra||'')+'</div><div class="foot"><span>Haydar Pack</span><span>'+esc(no)+'</span><span>Generated: '+esc(today())+'</span></div><script>setTimeout(function(){try{window.print()}catch(e){}},450);<\/script></body></html>'}
