@@ -1,9 +1,6 @@
-# Haydar Pack V57.6
+# Haydar Pack V57.6 - Print Engine Rebuild
 
-نسخة **Print Reliability** مبنية على V57.4 المستقرة.
+نسخة إصلاح جذري للطباعة فوق V57.5. لم يتم تغيير Apps Script أو بيانات البرنامج.
 
-رابط التشغيل بعد الرفع:
-
-`https://headersobhy-code.github.io/Haydar-Pack/?v=57_6printlayout`
-
-آخر Apps Script ثابت: **V50 Backup Center Pro**. لا تعدل Apps Script مع هذه النسخة.
+رابط الاختبار بعد الرفع:
+`?v=57_6printengine`

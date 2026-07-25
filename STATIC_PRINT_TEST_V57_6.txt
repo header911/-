@@ -1,0 +1,7 @@
+Static and rendered test results
+- JavaScript syntax: PASS for 8 production JS files.
+- index.html production JS count: 8.
+- old cache token check: PASS.
+- representative A4 landscape render: content width coverage 94.7%.
+- sample table columns: 11/11 visible.
+- Arabic and English header: visible.

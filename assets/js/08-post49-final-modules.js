@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-mobile-back-lite-fix';
-  var SITE_VERSION='57_6printlayout';
+  var SITE_VERSION='57_6printengine';
   var booted=false, stack=[];
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
   function isMobile(){try{return window.matchMedia('(max-width: 760px)').matches}catch(e){return window.innerWidth<=760}}
@@ -28,58 +28,13 @@
   window.HP_V51_MOBILE_UX=window.HP_V52_MOBILE_UX={version:VERSION,siteVersion:SITE_VERSION,back:backInside,refresh:function(){removeFloating();updateDrawers()},floatingRemoved:true};
 })();
 
-/* ===== V57.6 SAFE SUBMISSION GUARD ===== */
-(function(){
-  'use strict';
-  var installed=false, locks={};
-  var rules={
-    saveOrder:{nonNegative:['o-qty','o-price','o-ak','o-deposit','o-discount']},
-    saveTransfer:{positive:['t-amt']},
-    saveExpense:{positive:['ex-amt']},
-    savePayment:{positive:['pay-amt']},
-    saveClient:{},
-    saveFactory:{}
-  };
-  function notify(msg){try{if(typeof window.toast==='function')window.toast(msg)}catch(e){}}
-  function value(id){var el=document.getElementById(id);if(!el||String(el.value||'').trim()==='')return null;var v=Number(String(el.value).replace(/,/g,''));return isFinite(v)?v:NaN}
-  function validate(rule){
-    var ids=(rule&&rule.nonNegative)||[];
-    for(var i=0;i<ids.length;i++){var v=value(ids[i]);if(v!=null&&(!isFinite(v)||v<0)){notify('القيم المالية والكميات لا يمكن أن تكون سالبة');return false}}
-    ids=(rule&&rule.positive)||[];
-    for(var j=0;j<ids.length;j++){var p=value(ids[j]);if(p==null||!isFinite(p)||p<=0){notify('أدخل مبلغًا صحيحًا أكبر من صفر');return false}}
-    return true;
-  }
-  function wrap(name,rule){
-    var original=window[name];
-    if(typeof original!=='function'||original.__hpSafeSubmit)return;
-    var guarded=function(){
-      if(!validate(rule))return false;
-      if(locks[name]){notify('جاري حفظ العملية، انتظر لحظة');return false}
-      locks[name]=true;
-      try{return original.apply(this,arguments)}
-      finally{setTimeout(function(){locks[name]=false},900)}
-    };
-    guarded.__hpSafeSubmit=true;
-    guarded.__hpOriginal=original;
-    window[name]=guarded;
-  }
-  function install(){
-    if(installed)return;
-    installed=true;
-    Object.keys(rules).forEach(function(name){wrap(name,rules[name])});
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
-  window.addEventListener('load',install);
-  setTimeout(install,1800);
-})();
-
 
 /* ===== CONSOLIDATED SOURCE: 09-reports-pro.js ===== */
 /* Haydar Pack V52 Reports Pro - V54.2 event-safe buttons */
 (function(){
   'use strict';
-  var VERSION='57.6.0-print-layout-fix';
-  var SITE_VERSION='57_6printlayout';
+  var VERSION='57.6.0-print-engine-rebuild';
+  var SITE_VERSION='57_6printengine';
   var ROOT_ID='hp-v52-reports-pro';
 
   function byId(id){return document.getElementById(id)}
@@ -329,7 +284,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-finance-lite-fix';
-  var SITE_VERSION='57_6printlayout';
+  var SITE_VERSION='57_6printengine';
   var ROOT_ID='hp-v53-finance-insights';
   var MODAL_ID='hp-v53-drilldown-modal';
   var lastError='';
@@ -420,8 +375,8 @@
    Final frontend tester: verifies post-V49 modules through V54, forces reports order, injects Apps Script /exec editor in sync screen. */
 (function(){
   'use strict';
-  var VERSION='57.6.0-print-layout-fix';
-  var SITE_VERSION='57_6printlayout';
+  var VERSION='57.6.0-print-engine-rebuild';
+  var SITE_VERSION='57_6printengine';
   var REPORT_AUDIT_ID='hp-v533-post49-audit-strip';
   var BACKEND_PANEL_ID='hp-v533-backend-panel';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
@@ -500,8 +455,8 @@
    Built on V53.3 without touching sync/backend logic. */
 (function(){
   'use strict';
-  var VERSION='57.6.0-print-layout-fix';
-  var SITE_VERSION='57_6printlayout';
+  var VERSION='57.6.0-print-engine-rebuild';
+  var SITE_VERSION='57_6printengine';
   var ROOT_ID='hp-v54-1-repair';
   var PREVIEW_MODAL_ID='hp-v54-doc-preview';
   var STATUS={draft:'Draft',sent:'Sent',paid:'Paid',cancelled:'Cancelled'};
@@ -551,54 +506,23 @@
     setTimeout(function(){try{if(window.HP_V501_SAVE_GUARD&&typeof HP_V501_SAVE_GUARD.confirm==='function')HP_V501_SAVE_GUARD.confirm('v54-documents-'+(reason||'save'),false);else if(window.HP_V37_SYNC&&typeof HP_V37_SYNC.push==='function')HP_V37_SYNC.push(false)}catch(e){}},220);
   }
   function logo(){return 'hp-logo-v3-192.png?v='+SITE_VERSION}
-  function printRepairCss(){return '@page{size:297mm 210mm;margin:8mm}html,body{width:100%;max-width:100%;min-width:0;height:auto;overflow:visible!important}.sheet{width:100%;max-width:100%;min-width:0;height:auto;overflow:visible!important;transform:none!important;contain:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.hp-doc-head,.brand,.brand>div,.meta,.meta>div{min-width:0}.brand{flex:1 1 0}.brand img{flex:0 0 auto}.brand>div,.meta span{overflow-wrap:anywhere;word-break:normal}table{width:100%!important;max-width:100%!important;table-layout:fixed!important}thead{display:table-header-group}tfoot{display:table-footer-group}tr{page-break-inside:avoid;break-inside:avoid-page}th,td{min-width:0;overflow-wrap:anywhere;word-break:normal}.totals,.terms,.note,.sign{max-width:100%;page-break-inside:avoid;break-inside:avoid-page}.totals{width:min(350px,100%)}img{max-width:100%}@media print{html,body{width:auto!important;max-width:none!important;min-width:0!important;height:auto!important;overflow:visible!important}body{margin:0!important}.no-print{display:none!important}.sheet{width:auto!important;max-width:none!important;min-width:0!important;height:auto!important;padding:0!important;margin:0!important;overflow:visible!important;transform:none!important}table{width:100%!important;max-width:100%!important;table-layout:fixed!important}thead{display:table-header-group!important}tr{page-break-inside:avoid!important;break-inside:avoid-page!important}}'}
-  function docCss(){return '@page{size:297mm 210mm;margin:8mm}*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#111;font-family:Arial,Tahoma,sans-serif;font-size:11px}.sheet{padding:2mm}.no-print{position:fixed;top:8px;left:8px;z-index:999;display:flex;gap:7px}.no-print button{font-weight:900;border:2px solid #000;border-radius:9px;background:#fff;color:#000;padding:8px 12px}.hp-doc-head{direction:ltr;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0b2442;padding-bottom:7px;margin-bottom:9px}.brand{display:flex;align-items:center;gap:10px}.brand.r{direction:rtl;text-align:right}.brand.l{direction:ltr;text-align:left}.brand img{width:68px;height:68px;object-fit:contain}.title-en{font-size:25px;font-weight:900;color:#0b2442}.title-ar{font-size:27px;font-weight:900;color:#ad7b25}.sub{font-size:11px;font-weight:900;color:#111;margin-top:5px}.doc-title{text-align:center;font-size:22px;font-weight:900;margin:6px 0 9px;text-decoration:underline}.doc-chip{display:none!important}.meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px 14px;margin-bottom:8px}.meta div{border-bottom:1px dotted #777;padding:3px 0;display:flex;justify-content:space-between;gap:12px}.meta b{white-space:nowrap}table{border-collapse:collapse}th,td{border:1.2px solid #000;text-align:center;vertical-align:middle;padding:4px 3px}th{background:#e7edf8;font-weight:900}.totals{margin-top:9px;margin-right:auto}.totals td{font-weight:900}.terms,.note{margin-top:10px;line-height:1.65;font-weight:900}.sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:18px;font-weight:900}.sign div{border-top:1px solid #000;padding-top:7px;text-align:center}.foot{display:none}'+printRepairCss()}
+  function docCss(){return '@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}html,body{margin:0!important;padding:0!important;width:100%!important;min-width:0!important;max-width:none!important;background:#fff;color:#111;font-family:Arial,Tahoma,sans-serif;font-size:9.5px;overflow:visible!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{direction:rtl}.sheet{direction:rtl;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;overflow:visible!important;transform:none!important;zoom:1!important}.no-print{position:fixed;top:8px;left:8px;z-index:9999;display:flex;gap:7px}.no-print button{font-weight:900;border:2px solid #000;border-radius:9px;background:#fff;color:#000;padding:8px 12px}.hp-doc-head{direction:ltr;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;border-bottom:2.4px solid #0b2442;padding-bottom:5px;margin:0 0 7px;width:100%}.brand{display:flex;align-items:center;gap:8px;min-width:0}.brand.r{direction:rtl;text-align:right;justify-content:flex-start}.brand.l{direction:ltr;text-align:left;justify-content:flex-start}.brand img{width:46px;height:46px;object-fit:contain;flex:0 0 auto}.title-en{font-size:18px;font-weight:900;color:#0b2442;line-height:1.05}.title-ar{font-size:20px;font-weight:900;color:#ad7b25;line-height:1.05}.sub{font-size:8.8px;font-weight:900;color:#111;margin-top:3px;white-space:normal}.doc-title{text-align:center;font-size:17px;font-weight:900;margin:4px 0 7px;text-decoration:underline}.doc-chip{display:none!important}.meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 10px;margin-bottom:6px;width:100%}.meta div{border-bottom:1px dotted #777;padding:2px 0;display:flex;justify-content:space-between;gap:8px;min-width:0}.meta b{white-space:nowrap}.meta span{overflow-wrap:anywhere;min-width:0}table{width:100%!important;max-width:100%!important;border-collapse:collapse;table-layout:fixed;page-break-inside:auto}thead{display:table-header-group}tbody{display:table-row-group}tr{page-break-inside:avoid;break-inside:avoid}th,td{border:1px solid #000;text-align:center;vertical-align:middle;padding:3px 2px;font-size:8.5px;line-height:1.2;white-space:normal;word-break:break-word;overflow-wrap:anywhere;min-width:0}th{background:#e7edf8;font-weight:900}.totals{width:74mm!important;max-width:74mm!important;margin-top:7px!important;margin-right:auto!important;margin-left:0!important;table-layout:auto!important}.totals td{font-weight:900;font-size:9.2px}.terms,.note{margin-top:8px;line-height:1.55;font-weight:900;text-align:right;font-size:9.2px}.sign,.foot{display:none!important}@media screen{body{background:#eef1f5;padding:12px!important}.sheet{max-width:1180px!important;margin:0 auto!important;padding:8mm!important;background:#fff!important;box-shadow:0 0 0 1px #d5dbe5,0 8px 30px rgba(0,0,0,.08)}}@media print{html,body{width:100%!important;height:auto!important;min-width:0!important;max-width:none!important;margin:0!important;padding:0!important;overflow:visible!important;transform:none!important;zoom:1!important}.no-print{display:none!important}.sheet{width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-shadow:none!important;transform:none!important;zoom:1!important}.sign,.foot{display:none!important}}'}
   function meta(rows){return '<div class="meta">'+rows.map(function(r){return '<div><b>'+esc(r[0])+'</b><span>'+esc(r[1]||'')+'</span></div>'}).join('')+'</div>'}
   function header(){return '<div class="hp-doc-head"><div class="brand l"><img src="'+logo()+'"><div><div class="title-en">Haydar Pack</div><div class="sub">Eco-friendly bags &amp; printed packaging</div></div></div><div class="brand r"><img src="'+logo()+'"><div><div class="title-ar">حيدر باك</div><div class="sub">شنط قماش غير منسوجة صديقة للبيئة</div></div></div></div>'}
-  function cleanFileName(v){var out=String(v==null?'':v);try{out=out.normalize('NFKC')}catch(e){}out=out.replace(/[\u0000-\u001f\u007f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,' ').replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim().replace(/[. ]+$/,'').slice(0,140);if(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(out))out='Haydar Pack '+out;return out||'Haydar Pack'}
+  function cleanFileName(v){return String(v==null?'':v).replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim().slice(0,140)||'Haydar Pack'}
   function makeDocTitle(typeOrTitle,name,no){var t=typeTitle(typeOrTitle)||String(typeOrTitle||'مستند'); if(typeOrTitle==='invoice')t='فاتورة'; if(typeOrTitle==='quote')t='عرض سعر'; if(typeOrTitle==='clientStatement'||typeOrTitle==='factoryStatement')t='كشف حساب'; return cleanFileName(t+(name?' '+name:'')+(no?' - '+no:''))}
-  function docHtml(title,no,status,metaHtml,head,body,totals,extra,fileTitle){return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+esc(cleanFileName(fileTitle||((title||'مستند')+' - '+no)))+'</title><style>'+docCss()+'</style></head><body><div class="no-print"><button onclick="window.hpPrintWhenReady()">طباعة / PDF</button><button onclick="window.close()">إغلاق</button></div><div class="sheet">'+header()+'<div class="doc-title">'+esc(title)+'</div>'+metaHtml+'<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>'+totals+(extra||'')+'</div></body></html>'}
+  function docHtml(title,no,status,metaHtml,head,body,totals,extra,fileTitle){var safeTitle=esc(cleanFileName(fileTitle||((title||'مستند')+' - '+no)));return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+safeTitle+'</title><style>'+docCss()+'</style></head><body><div class="no-print"><button type="button" onclick="window.__hpPrintNow&&window.__hpPrintNow()">طباعة / حفظ PDF</button><button type="button" onclick="window.close()">إغلاق</button></div><div class="sheet">'+header()+'<div class="doc-title">'+esc(title)+'</div>'+metaHtml+'<table class="main-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>'+totals+(extra||'')+'</div><script>(function(){function go(){var imgs=Array.prototype.slice.call(document.images||[]);var wait=imgs.map(function(img){return img.complete?Promise.resolve():new Promise(function(resolve){img.onload=resolve;img.onerror=resolve;setTimeout(resolve,1500)})});Promise.all(wait).then(function(){setTimeout(function(){try{window.focus();window.print()}catch(e){}},120)})}window.__hpPrintNow=go})();<\/script></body></html>'}
   function rowsClient(orders,mode){var body='',gross=0,disc=0,net=0,deps=0; orders.forEach(function(o){var q=billQty(o), price=n(o.price), before=q*price+n(o.aklashe), d=discount(o), after=Math.max(0,before-d), dep=n(o.deposit); gross+=before; disc+=d; net+=after; deps+=dep; body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+esc(o.type||'')+'</td><td>'+esc(sizeText(o))+'</td><td>'+esc(o.color||'')+'</td><td>'+esc(o.handle||'بدون')+'</td><td>'+esc(o.colorCount||o.colorsCount||o.printColors||'1')+'</td><td>'+esc(o.face||o.printFace||o.printSide||'وجه واحد')+'</td><td>'+count(q)+'</td><td>'+money(price)+'</td><td>'+money(q*price)+'</td></tr>'; if(n(o.aklashe)>0)body+='<tr><td>'+esc(o.code||'')+'</td><td>اكلاشيه / تجهيز طباعة</td><td>اكلاشيه</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>1</td><td>'+money(o.aklashe)+'</td><td>'+money(o.aklashe)+'</td></tr>'}); return {body:body,gross:gross,disc:disc,net:net,deps:deps}}
   function rowsFactory(orders){var body='',total=0; orders.forEach(function(o){var c=client(o.clientId), q=n(o.fQty)||n(o.qty), price=n(o.fPrice), val=factoryTotal(o); total+=val; body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(c.name||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+esc(o.type||'')+'</td><td>'+esc(sizeText(o))+'</td><td>'+esc(o.color||'')+'</td><td>'+esc(o.handle||'بدون')+'</td><td>'+count(q)+'</td><td>'+money(price)+'</td><td>'+money(val)+'</td></tr>'}); return {body:body,total:total}}
   function addRecord(rec){var docs=ensureStore(); docs.unshift(rec); if(docs.length>120)DB.documents=docs.slice(0,120); saveData('document-'+rec.type); renderCenter(); return rec}
-  function printRuntime(autoPrint){return '<script id="hp-print-runtime">(function(){var busy=false;function waitAssets(){var jobs=[];try{if(document.fonts&&document.fonts.ready)jobs.push(document.fonts.ready)}catch(e){}Array.prototype.forEach.call(document.images||[],function(img){if(typeof img.decode==="function"){jobs.push(img.decode().catch(function(){}));return}if(img.complete)return;var p=new Promise(function(resolve){img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true})});jobs.push(p)});return Promise.race([Promise.all(jobs),new Promise(function(resolve){setTimeout(resolve,3000)})])}window.hpPrintWhenReady=function(){if(busy)return;busy=true;waitAssets().catch(function(){}).then(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){busy=false;try{window.focus();window.print()}catch(e){busy=false}})})})};'+(autoPrint?'if(document.readyState==="complete")setTimeout(window.hpPrintWhenReady,0);else window.addEventListener("load",function(){setTimeout(window.hpPrintWhenReady,0)},{once:true});':'')+'})();<\/script>'}
-  function preparePrintHtml(html,autoPrint){
-    html=String(html||'').replace(/onclick=(["'])window\.print\(\)\1/gi,'onclick="window.hpPrintWhenReady()"');
-    if(html.indexOf('data-hp-print-repair')<0){
-      var repair='<style data-hp-print-repair="57.6">'+printRepairCss()+'</style>';
-      html=/<\/head>/i.test(html)?html.replace(/<\/head>/i,repair+'</head>'):repair+html;
-    }
-    html=html.replace(/<script id="hp-print-runtime">[\s\S]*?<\/script>/i,'');
-    var runtime=printRuntime(!!autoPrint);
-    return /<\/body>/i.test(html)?html.replace(/<\/body>/i,runtime+'</body>'):html+runtime;
-  }
-  function openHtml(html,autoPrint){var w=window.open('','_blank'); if(!w){toast('المتصفح منع فتح المستند. اسمح بالـ Popups.'); return false} w.document.open(); w.document.write(preparePrintHtml(html,!!autoPrint)); w.document.close(); return true}
+  function openHtml(html,autoPrint){var w=window.open('','_blank','width=1440,height=960,scrollbars=yes,resizable=yes'); if(!w){toast('المتصفح منع فتح المستند. اسمح بالـ Popups.'); return false} var out=String(html||''); if(autoPrint){var auto='<script>window.addEventListener("load",function(){setTimeout(function(){try{window.__hpPrintNow?window.__hpPrintNow():window.print()}catch(e){}},220)},{once:true});<\/script>'; out=out.replace(/<\/body>\s*<\/html>\s*$/i,auto+'</body></html>')} w.document.open(); w.document.write(out); w.document.close(); return true}
   function clientDoc(cid,type){try{var orders=selectedClientOrders(cid); if(!orders.length){toast('لا توجد أوردرات للعميل');return} var c=client(cid), no=nextNo(type), r=rowsClient(orders,type), title=typeTitle(type), dep=r.deps, head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي قبل الخصم</td><td>'+money(r.gross)+'</td></tr><tr><td>إجمالي الخصومات</td><td>'+money(r.disc)+'</td></tr><tr><td>الإجمالي بعد الخصم</td><td>'+money(r.net)+'</td></tr>'+(type==='invoice'?'<tr><td>العربون المسجل</td><td>'+money(dep)+'</td></tr><tr><td>الصافي المستحق</td><td>'+money(Math.max(0,r.net-dep))+'</td></tr>':'')+'</table>'; var extra=type==='quote'?'<div class="terms"><b>شروط عرض السعر:</b><br>برجاء مراجعة المقاسات والألوان والكميات جيدًا قبل التشغيل.<br>قد يحدث عجز أو زيادة تشغيلية في حدود 3%.<br>التشغيل يبدأ بعد اعتماد العرض ودفع العربون المتفق عليه.</div>':''; var html=docHtml(title,no,STATUS.draft,meta([['التاريخ',today()],['رقم المستند',no],['العميل',c.name],['الهاتف',c.phone||''],['العنوان',c.addr||''],['عدد الأوردرات',orders.length]]),head,r.body,totals,extra,makeDocTitle(type,c.name,no)); addRecord({id:'doc_'+Date.now()+'_'+Math.random().toString(36).slice(2),no:no,type:type,title:title,status:STATUS.draft,date:today(),createdAt:nowIso(),entityType:'client',entityId:cid,entityName:c.name||'',orders:orders.map(function(o){return o.id}),total:r.net,html:html,fileName:makeDocTitle(type,c.name,no)}); openHtml(html,false); toast('تم إنشاء '+title+' وحفظه في سجل المستندات') }catch(e){log('V54_CLIENT_DOC_ERROR',String(e&&e.message||e),type); toast('حدث خطأ أثناء إنشاء المستند')}}
   function clientStatement(cid){try{var orders=selectedClientOrders(cid); if(!orders.length){toast('لا توجد أوردرات للعميل');return} var c=client(cid), no=nextNo('clientStatement'), body='',gross=0,disc=0,net=0,deps=0; orders.forEach(function(o){var before=billQty(o)*n(o.price)+n(o.aklashe), d=discount(o), after=Math.max(0,before-d), dep=n(o.deposit); gross+=before;disc+=d;net+=after;deps+=dep; body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(o.date||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+count(billQty(o))+'</td><td>'+money(before)+'</td><td>'+money(d)+'</td><td>'+money(after)+'</td><td>'+money(dep)+'</td><td>'+money(Math.max(0,after-dep))+'</td><td>'+esc(o.status||'')+'</td></tr>'}); var ps=arr('payments').filter(function(p){return p.clientId===cid}), paid=ps.reduce(function(s,p){return s+n(p.amount)},0), remain=net+n(c.debt)-deps-paid; var head='<tr><th>كود</th><th>التاريخ</th><th>الصنف</th><th>الكمية</th><th>قبل الخصم</th><th>الخصم</th><th>بعد الخصم</th><th>العربون</th><th>باقي الأوردر</th><th>الحالة</th></tr>'; var totals='<table class="totals"><tr><td>إجمالي بعد الخصم</td><td>'+money(net)+'</td></tr><tr><td>مديونية قديمة</td><td>'+money(c.debt)+'</td></tr><tr><td>عربون الأوردرات</td><td>'+money(deps)+'</td></tr><tr><td>دفعات عامة</td><td>'+money(paid)+'</td></tr><tr><td>الرصيد النهائي</td><td>'+money(remain)+'</td></tr></table>'; var extra=ps.length?'<div class="terms"><b>الدفعات العامة المحتسبة:</b><br>'+ps.slice(0,20).map(function(p){return esc(p.date||'')+' — '+money(p.amount)+' — '+esc(p.note||'')}).join('<br>')+'</div>':''; var html=docHtml(typeTitle('clientStatement'),no,STATUS.draft,meta([['التاريخ',today()],['رقم الكشف',no],['العميل',c.name],['الهاتف',c.phone||''],['الرصيد الحالي',money(clientBalance(cid))],['عدد الأوردرات',orders.length]]),head,body,totals,extra,makeDocTitle('clientStatement',c.name,no)); addRecord({id:'doc_'+Date.now()+'_'+Math.random().toString(36).slice(2),no:no,type:'clientStatement',title:typeTitle('clientStatement'),status:STATUS.draft,date:today(),createdAt:nowIso(),entityType:'client',entityId:cid,entityName:c.name||'',orders:orders.map(function(o){return o.id}),total:remain,html:html,fileName:makeDocTitle('clientStatement',c.name,no)}); openHtml(html,false); toast('تم إنشاء كشف الحساب وحفظه') }catch(e){log('V54_CLIENT_STATEMENT_ERROR',String(e&&e.message||e),'clientStatement'); toast('حدث خطأ في كشف الحساب')}}
   function factoryStatement(fid){try{var orders=selectedFactoryOrders(fid); if(!orders.length){toast('لا توجد أوردرات للمصنع');return} var f=factory(fid), no=nextNo('factoryStatement'), r=rowsFactory(orders), ts=arr('transfers').filter(function(t){return t.factoryId===fid}), paid=ts.reduce(function(s,t){return s+n(t.amount)},0); var head='<tr><th>كود</th><th>عميل</th><th>الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>الكمية</th><th>سعر المصنع</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>إجمالي تكلفة الأوردرات</td><td>'+money(r.total)+'</td></tr><tr><td>تحويلات مسجلة</td><td>'+money(paid)+'</td></tr><tr><td>رصيد المصنع الحالي</td><td>'+money(factoryBalance(fid))+'</td></tr></table>'; var html=docHtml(typeTitle('factoryStatement'),no,STATUS.draft,meta([['التاريخ',today()],['رقم الكشف',no],['المصنع',f.name],['الهاتف',f.phone||''],['الرصيد الحالي',money(factoryBalance(fid))],['عدد الأوردرات',orders.length]]),head,r.body,totals,'',makeDocTitle('factoryStatement',f.name,no)); addRecord({id:'doc_'+Date.now()+'_'+Math.random().toString(36).slice(2),no:no,type:'factoryStatement',title:typeTitle('factoryStatement'),status:STATUS.draft,date:today(),createdAt:nowIso(),entityType:'factory',entityId:fid,entityName:f.name||'',orders:orders.map(function(o){return o.id}),total:r.total-paid,html:html,fileName:makeDocTitle('factoryStatement',f.name,no)}); openHtml(html,false); toast('تم إنشاء كشف المصنع وحفظه') }catch(e){log('V54_FACTORY_STATEMENT_ERROR',String(e&&e.message||e),'factoryStatement'); toast('حدث خطأ في كشف المصنع')}}
-  function sanitizeStoredHtml(html,rec){
-    html=String(html||'');
-    var title=cleanFileName((rec&&rec.fileName)||makeDocTitle(rec&&rec.type,rec&&rec.entityName,rec&&rec.no));
-    if(!html)return '';
-    html=html.replace(/<title>[\s\S]*?<\/title>/i,'<title>'+esc(title)+'</title>');
-    html=html.replace(/\s*<span class="doc-chip">[\s\S]*?<\/span>/gi,'');
-    html=html.replace(/<div class="note">تم إصدار الفاتورة[\s\S]*?<\/div>/gi,'');
-    html=html.replace(/<div class="note">كشف المصنع[\s\S]*?<\/div>/gi,'');
-    html=html.replace(/<div class="sign">[\s\S]*?<\/div>\s*<\/div>\s*<div class="foot">[\s\S]*?<\/div>/i,'</div>');
-    html=html.replace(/<div class="sign">[\s\S]*?<\/div>/gi,'');
-    html=html.replace(/<div class="foot">[\s\S]*?<\/div>/gi,'');
-    html=html.replace(/\.doc-chip\{[^}]*\}/g,'.doc-chip{display:none!important}');
-    return html;
-  }
-  function openRecord(id,autoPrint){
-    try{
-      var d=ensureStore().find(function(x){return x.id===id});
-      if(!d){toast('المستند غير موجود في السجل');return false}
-      var html=sanitizeStoredHtml(d.html,d);
-      if(!html){toast('المستند قديم ولا يحتوي نسخة محفوظة');return false}
-      return openHtml(html,!!autoPrint);
-    }catch(e){log('V54_OPEN_RECORD_ERROR',String(e&&e.message||e),'openRecord');toast('حدث خطأ أثناء فتح المستند');return false}
-  }
+  function recordOrders(rec){var ids=Array.isArray(rec&&rec.orders)?rec.orders:[];var all=arr('orders');var found=ids.length?all.filter(function(o){return ids.indexOf(o.id)>=0}):[];if(found.length)return found;if(rec&&rec.entityType==='client')return all.filter(function(o){return o.clientId===rec.entityId});if(rec&&rec.entityType==='factory')return all.filter(function(o){return o.factoryId===rec.entityId});return []}
+  function rebuildRecordFromData(rec){try{var orders=recordOrders(rec),no=rec.no||'DOC',date=rec.date||today();if(!orders.length)return '';if(rec.type==='quote'||rec.type==='invoice'){var c=client(rec.entityId),r=rowsClient(orders,rec.type),dep=r.deps,head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>',tot='<table class="totals"><tr><td>الإجمالي قبل الخصم</td><td>'+money(r.gross)+'</td></tr><tr><td>إجمالي الخصومات</td><td>'+money(r.disc)+'</td></tr><tr><td>الإجمالي بعد الخصم</td><td>'+money(r.net)+'</td></tr>'+(rec.type==='invoice'?'<tr><td>العربون المسجل</td><td>'+money(dep)+'</td></tr><tr><td>الصافي المستحق</td><td>'+money(Math.max(0,r.net-dep))+'</td></tr>':'')+'</table>',extra=rec.type==='quote'?'<div class="terms"><b>شروط عرض السعر:</b><br>برجاء مراجعة المقاسات والألوان والكميات جيدًا قبل التشغيل.<br>قد يحدث عجز أو زيادة تشغيلية في حدود 3%.<br>التشغيل يبدأ بعد اعتماد العرض ودفع العربون المتفق عليه.</div>':'';return docHtml(typeTitle(rec.type),no,rec.status,meta([['التاريخ',date],['رقم المستند',no],['العميل',rec.entityName||c.name],['الهاتف',c.phone||''],['العنوان',c.addr||''],['عدد الأوردرات',orders.length]]),head,r.body,tot,extra,makeDocTitle(rec.type,rec.entityName||c.name,no))}if(rec.type==='clientStatement'){var c2=client(rec.entityId),body='',net=0,deps=0;orders.forEach(function(o){var before=billQty(o)*n(o.price)+n(o.aklashe),d=discount(o),after=Math.max(0,before-d),dep=n(o.deposit);net+=after;deps+=dep;body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(o.date||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+count(billQty(o))+'</td><td>'+money(before)+'</td><td>'+money(d)+'</td><td>'+money(after)+'</td><td>'+money(dep)+'</td><td>'+money(Math.max(0,after-dep))+'</td><td>'+esc(o.status||'')+'</td></tr>'});var ps=arr('payments').filter(function(p){return p.clientId===rec.entityId}),paid=ps.reduce(function(s,p){return s+n(p.amount)},0),remain=net+n(c2.debt)-deps-paid;return docHtml(typeTitle('clientStatement'),no,rec.status,meta([['التاريخ',date],['رقم الكشف',no],['العميل',rec.entityName||c2.name],['الهاتف',c2.phone||''],['الرصيد الحالي',money(clientBalance(rec.entityId))],['عدد الأوردرات',orders.length]]),'<tr><th>كود</th><th>التاريخ</th><th>الصنف</th><th>الكمية</th><th>قبل الخصم</th><th>الخصم</th><th>بعد الخصم</th><th>العربون</th><th>باقي الأوردر</th><th>الحالة</th></tr>',body,'<table class="totals"><tr><td>إجمالي بعد الخصم</td><td>'+money(net)+'</td></tr><tr><td>مديونية قديمة</td><td>'+money(c2.debt)+'</td></tr><tr><td>عربون الأوردرات</td><td>'+money(deps)+'</td></tr><tr><td>دفعات عامة</td><td>'+money(paid)+'</td></tr><tr><td>الرصيد النهائي</td><td>'+money(remain)+'</td></tr></table>','',makeDocTitle('clientStatement',rec.entityName||c2.name,no))}if(rec.type==='factoryStatement'){var f=factory(rec.entityId),rf=rowsFactory(orders),ts=arr('transfers').filter(function(t){return t.factoryId===rec.entityId}),paidf=ts.reduce(function(s,t){return s+n(t.amount)},0);return docHtml(typeTitle('factoryStatement'),no,rec.status,meta([['التاريخ',date],['رقم الكشف',no],['المصنع',rec.entityName||f.name],['الهاتف',f.phone||''],['الرصيد الحالي',money(factoryBalance(rec.entityId))],['عدد الأوردرات',orders.length]]),'<tr><th>كود</th><th>عميل</th><th>الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>الكمية</th><th>سعر المصنع</th><th>القيمة</th></tr>',rf.body,'<table class="totals"><tr><td>إجمالي تكلفة الأوردرات</td><td>'+money(rf.total)+'</td></tr><tr><td>تحويلات مسجلة</td><td>'+money(paidf)+'</td></tr><tr><td>رصيد المصنع الحالي</td><td>'+money(factoryBalance(rec.entityId))+'</td></tr></table>','',makeDocTitle('factoryStatement',rec.entityName||f.name,no))}}catch(e){log('V576_RECORD_REBUILD_ERROR',String(e&&e.message||e),'rebuildRecordFromData')}return ''}
+  function reflowStoredHtml(rec){try{var raw=String(rec&&rec.html||'');if(!raw)return '';var d=new DOMParser().parseFromString(raw,'text/html');var main=null;Array.prototype.some.call(d.querySelectorAll('table'),function(t){if(!t.classList.contains('totals')){main=t;return true}return false});if(!main)return '';var titleNode=d.querySelector('.doc-title'),metaNode=d.querySelector('.meta'),totalsNode=d.querySelector('table.totals'),headNode=main.querySelector('thead'),bodyNode=main.querySelector('tbody');var extra=Array.prototype.map.call(d.querySelectorAll('.terms,.note'),function(x){return x.outerHTML}).join('');return docHtml((titleNode&&titleNode.textContent||rec.title||typeTitle(rec.type)).trim(),rec.no||'',rec.status||STATUS.draft,metaNode?metaNode.outerHTML:meta([['التاريخ',rec.date||today()],['رقم المستند',rec.no||''],[rec.entityType==='factory'?'المصنع':'العميل',rec.entityName||'']]),headNode?headNode.innerHTML:'',bodyNode?bodyNode.innerHTML:main.innerHTML,totalsNode?totalsNode.outerHTML:'',extra,cleanFileName(rec.fileName||makeDocTitle(rec.type,rec.entityName,rec.no)))}catch(e){log('V576_STORED_REFLOW_ERROR',String(e&&e.message||e),'reflowStoredHtml');return ''}}
+  function openRecord(id,autoPrint){try{var d=ensureStore().find(function(x){return x.id===id});if(!d){toast('المستند غير موجود في السجل');return false}var html=reflowStoredHtml(d)||rebuildRecordFromData(d);if(!html){toast('تعذر إعادة بناء المستند القديم');return false}return openHtml(html,!!autoPrint)}catch(e){log('V54_OPEN_RECORD_ERROR',String(e&&e.message||e),'openRecord');toast('حدث خطأ أثناء فتح المستند');return false}}
   function docs(){return ensureStore().slice().sort(function(a,b){return String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||''))})}
   function statusClass(s){s=String(s||''); if(s===STATUS.paid)return 'ok'; if(s===STATUS.sent)return 'blue'; if(s===STATUS.cancelled)return 'bad'; return 'draft'}
   function setStatus(id,st){var d=ensureStore().find(function(x){return x.id===id}); if(!d)return; d.status=st||STATUS.draft; d.statusAt=nowIso(); saveData('document-status'); renderCenter(); toast('تم تحديث حالة المستند')}
@@ -623,7 +547,7 @@
   function exportJson(){download('haydar-pack-v54-documents.json',JSON.stringify({exportedAt:nowIso(),documents:docs()},null,2),'application/json;charset=utf-8')}
   function injectStyle(){if(byId('hp-v54-style'))return; var st=document.createElement('style'); st.id='hp-v54-style'; st.textContent='.hp-v54-docs-pro{margin:18px 0;padding:18px;border:1px solid #dbe3ee;border-radius:18px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04)}.hp-v54-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.hp-v54-head h2{margin:3px 0;font-size:24px}.hp-v54-head p{margin:0;color:#5b6b83;font-weight:900}.hp-v54-tools{display:flex;gap:8px;flex-wrap:wrap}.hp-v54-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}.hp-v54-stats div{border:1px solid #e0e7f0;border-radius:14px;padding:10px;background:#f8fafc}.hp-v54-stats b{display:block;font-size:24px}.hp-v54-stats span{font-weight:900;color:#667085}.hp-v54-doc-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;border:1px solid #e6edf5;border-radius:14px;padding:10px;margin-bottom:8px}.hp-v54-doc-row b{font-size:16px}.hp-v54-doc-row span{display:block;color:#5b6b83;font-weight:900}.hp-v54-status{border:2px solid #111;border-radius:999px;padding:5px 10px;font-weight:900;color:#000!important}.hp-v54-status.ok{background:#d9fbe8}.hp-v54-status.blue{background:#dbeafe}.hp-v54-status.bad{background:#ffe0e0}.hp-v54-status.draft{background:#fff2c2}.hp-v54-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.hp-v54-actions select{border:2px solid #000;border-radius:10px;font-weight:900;padding:7px;background:#fff}@media(max-width:720px){.hp-v54-head{display:block}.hp-v54-tools{margin-top:10px}.hp-v54-stats{grid-template-columns:1fr 1fr}.hp-v54-doc-row{grid-template-columns:1fr}.hp-v54-actions .btn,.hp-v54-actions select{width:100%;min-height:42px}}'; document.head.appendChild(st)}
   function wrapReports(){var old=window.renderReports; if(typeof old==='function'&&!old.__hpV54Docs){var w=function(){var r=old.apply(this,arguments); setTimeout(renderCenter,60); return r}; w.__hpV54Docs=true; w.__hpOriginal=old; window.renderReports=w}}
-  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V55.3 Documents Stable Repair loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
+  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V57.6 Print Layout Repair loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
   window.printSelectedClientQuote=function(cid){clientDoc(cid,'quote')};
   window.printSelectedClientInvoice=function(cid){clientDoc(cid,'invoice')};
   window.printSelectedClientStatement=function(cid){clientStatement(cid)};
@@ -638,8 +562,8 @@
    post-V49 file to avoid increasing JavaScript file count. */
 (function(){
   'use strict';
-  var VERSION='57.6.0-print-layout-fix';
-  var SITE_VERSION='57_6printlayout';
+  var VERSION='57.6.0-print-engine-rebuild';
+  var SITE_VERSION='57_6printengine';
   var CARD_ID='hp-v55-quality-gate';
   var STYLE_ID='hp-v55-quality-style';
   function $(id){return document.getElementById(id)}
@@ -698,7 +622,7 @@
     var s=scan();
     var rowHtml=s.rows.map(function(r){return '<span class="hp-v55-pill '+(r[1]?'ok':'bad')+'">'+(r[1]?'✓ ':'! ')+esc(r[0])+'</span>'}).join('');
     var c=s.counts;
-    return '<h3>V57.6 Print Reliability Gate — فحص رأس المال والسيولة</h3>'+
+    return '<h3>V57.6 Legacy Clean Gate — فحص رأس المال والسيولة</h3>'+
       '<div class="hp-v55-meta">الحالة بعد الاختبار: <b>'+(s.ok?'سليمة':'تحتاج مراجعة')+'</b> · آخر فحص: '+esc(s.time)+'</div>'+
       '<div class="hp-v55-grid">'+rowHtml+'</div>'+
       '<div class="hp-v55-meta">الداتا: عملاء '+c.clients+' | مصانع '+c.factories+' | أوردرات '+c.orders+' | دفعات '+c.payments+' | مستندات '+c.documents+'</div>'+
@@ -717,12 +641,12 @@
   }
   function download(){
     var s=scan();
-    var txt='Haydar Pack V57.6 Print Reliability Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
+    var txt='Haydar Pack V57.6 Legacy Clean Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
     try{var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haydar_pack_v56_regression_report.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){alert(txt)}
   }
   function bind(){if(window.__HP_V55_QG_EVENTS)return;window.__HP_V55_QG_EVENTS=true;document.addEventListener('click',function(ev){var b=ev.target&&ev.target.closest?ev.target.closest('[data-hp-v55]'):null;if(!b)return;try{ev.preventDefault();ev.stopPropagation()}catch(e){}var a=b.getAttribute('data-hp-v55');if(a==='scan')place();if(a==='download')download();},true)}
   function wrapShowPage(){var old=window.showPage;if(typeof old!=='function'||old.__hpV55QG)return;var w=function(){var r=old.apply(this,arguments);setTimeout(place,120);setTimeout(function(){try{if(window.HP_V53_FINANCE&&typeof HP_V53_FINANCE.refresh==='function')HP_V53_FINANCE.refresh(); if(window.HP_V54_DOCS&&typeof HP_V54_DOCS.refresh==='function')HP_V54_DOCS.refresh()}catch(e){}},250);return r};w.__hpV55QG=true;w.__hpOriginal=old;window.showPage=w}
-  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V57.6 Print Reliability Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
+  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V57.6 Legacy Clean Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300)});else setTimeout(boot,300);
   window.HP_V55_QUALITY_GATE={version:VERSION,siteVersion:SITE_VERSION,scan:scan,render:place,download:download};
 })();
@@ -733,8 +657,8 @@
    House expenses affect liquidity and monthly net after house expenses, not the base order profit. */
 (function(){
   'use strict';
-  var VERSION='57.6.0-print-layout-fix';
-  var SITE_VERSION='57_6printlayout';
+  var VERSION='57.6.0-print-engine-rebuild';
+  var SITE_VERSION='57_6printengine';
   var PAGE='capital';
   var PAGE_ID='pg-capital';
   var NAV_ID='hp-v56-nav';
@@ -908,10 +832,10 @@
   window.HP_V56_CAPITAL_WALLET={version:VERSION,siteVersion:SITE_VERSION,render:render,calc:calcAll,clients:clientRows,factories:factoryRows,exportCsv:exportCsv};
 })();
 
-/* ===== V57.6 Print Reliability + Smart Summary (no new JS files) ===== */
+/* ===== V57.6 Internal Legacy Cleanup + Smart Summary (no new JS files) ===== */
 (function(){
   'use strict';
-  var VERSION='57.6.0-print-layout-fix', SITE_VERSION='57_6printlayout';
+  var VERSION='57.6.0-print-engine-rebuild', SITE_VERSION='57_6printengine';
   function q(s,root){return (root||document).querySelector(s)}
   function qa(s,root){return Array.prototype.slice.call((root||document).querySelectorAll(s))}
   function byId(id){return document.getElementById(id)}
