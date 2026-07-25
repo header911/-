@@ -1,4 +1,4 @@
-# Haydar Pack V57.6 — Architecture, Audit, Repair, and Test Report
+# Haydar Pack V57.7 — Architecture, Audit, Repair, and Test Report
 
 ## A. Architecture summary
 
@@ -79,7 +79,7 @@ The visible document styling, colors, typography, logos, A4 landscape size, and 
 - `assets/js/08-post49-final-modules.js`: final print repair, archived-document upgrade, safe filenames, and duplicate/negative submission guard.
 - `sw.js`: same-origin-only caching, navigation network-first fallback, and smaller precache.
 - `manifest.webmanifest`: final release token.
-- Documentation files: updated for V57.6 and this audit.
+- Documentation files: updated for V57.7 and this audit.
 
 Compatibility: no database schema, storage key, public CRUD function, Apps Script URL, document record structure, or deployment path was changed. No migration is required.
 
