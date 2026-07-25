@@ -1,0 +1,15 @@
+Static Verification Report V57.5
+Version token: 57_5printfinal
+Production JS files: 8
+Index JS refs: 8
+All production JavaScript syntax checks: PASS
+Service Worker syntax check: PASS
+Manifest JSON validation: PASS
+Local asset references: PASS
+Duplicate static HTML IDs: NONE
+Central financial calculation tests: PASS
+Stored invoice/factory statement print repair: PASS
+Mobile horizontal-overflow test at 390px: PASS
+Long 80-row layout stress test: PASS
+Apps Script server-side tests: NOT RUN (server source was not included)
+Live cloud write/restore tests: MANUAL (avoids changing production data)
