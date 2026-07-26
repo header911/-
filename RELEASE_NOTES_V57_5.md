@@ -1,21 +1,6 @@
-# Haydar Pack V57.10 — Print Reliability
+# Haydar Pack V57.8 — Print Reliability
 
-## V57.10 tainted-canvas correction
-
-- Images are fetched and converted to local data URLs before the document is rendered to canvas.
-- Any image that cannot be safely converted is replaced with a transparent local placeholder instead of contaminating the canvas.
-- `srcset` and unresolved external image sources are removed from the cloned document.
-- This prevents Chrome's `Tainted canvases may not be exported` error while preserving the fixed A4-landscape PDF pipeline.
-
-## V57.9 fixed-PDF pipeline
-
-- Replaced direct HTML `window.print()` for generated documents with a fixed A4-landscape PDF pipeline.
-- The document is rendered into a high-resolution image inside a real `841.89 × 595.28 pt` PDF page, so Chrome's Portrait/Landscape HTML layout setting can no longer shrink it to half a page.
-- Arabic text and the existing visual layout are preserved by rasterizing the already-rendered document before embedding it.
-- `pdf-lib` is bundled locally and cached with the application; the PDF path does not depend on an external CDN.
-- The document button now creates and opens the fixed PDF; printing or saving happens from the real PDF viewer.
-
-## V57.9 Chrome orientation correction
+## V57.8 Chrome orientation correction
 
 - Removed the V57.7 fixed `281mm` document width that caused clipping when Chrome retained a portrait layout viewport.
 - Replaced numeric page dimensions with the standard `A4 landscape` page descriptor so Chrome applies landscape to both the paper and the layout viewport.
@@ -36,6 +21,6 @@
 - إصلاح قص بطاقات الأرقام الكبيرة على شاشات الموبايل.
 - تقليل فحص Google أثناء الخمول من كل 20 ثانية إلى كل 60 ثانية، وإيقافه عند إخفاء الصفحة أو انقطاع الاتصال.
 - منع Service Worker من اعتراض أو تخزين طلبات Apps Script الخارجية.
-- تقليل عناصر كاش PWA المكررة وتحديث رمز النسخة إلى `57_10safeimagepdf`.
+- تقليل عناصر كاش PWA المكررة وتحديث رمز النسخة إلى `57_8landscapeprint`.
 
 لا توجد أي خطوة ترحيل للبيانات. مفاتيح التخزين، بنية DB، أسماء الدوال العامة، ورابط Apps Script ما زالت متوافقة.

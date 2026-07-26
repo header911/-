@@ -1,9 +1,10 @@
-# ترتيب الرفع الصحيح
+# رفع V57.8 على GitHub
 
-1. افتح مشروع Apps Script الحالي.
-2. استبدل Code.gs و appsscript.json بملفات V57.9.
-3. Deploy > Manage deployments > Edit > New version > Deploy.
-4. تأكد أن رابط /exec لم يتغير. لو تغير، حدّثه من شاشة المزامنة والحماية داخل البرنامج.
-5. ارفع محتويات ZIP الخاص بـ GitHub إلى Root الـ repository.
-6. افتح: ?v=57_9serverpdf
-7. افتح عرض سعر واضغط "تحميل PDF مضبوط".
+1. فك ضغط ZIP.
+2. ارفع كل المحتويات على GitHub بنفس الهيكلة.
+3. تأكد أن فولدر `assets` مرفوع كامل.
+4. افتح:
+
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_8landscapeprint`
+
+لا تعدل Apps Script.

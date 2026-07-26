@@ -1,5 +1,5 @@
-Static Verification Report V57.9
-Version token: 57_10safeimagepdf
+Static Verification Report V57.8
+Version token: 57_8landscapeprint
 Production JS files: 8
 Index JS refs: 8
 All production JavaScript syntax checks: PASS

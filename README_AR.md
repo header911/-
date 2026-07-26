@@ -1,6 +1,9 @@
-# Haydar Pack V57.9 — Server PDF Engine
+# Haydar Pack V57.8
 
-نسخة إصلاح جذري للطباعة. لم تعد الفواتير والعروض وكشوف الحساب تعتمد على نافذة Print في Chrome.
-البرنامج يرسل المستند الحالي كما هو إلى Apps Script، وينشئ Google ملف PDF ثابت A4 Landscape ثم يعرضه ويحمّله باسم مفهوم.
+نسخة **Print Reliability** مبنية على V57.4 المستقرة.
 
-مهم: يجب رفع Apps Script V57.9 أولًا وعمل Deploy New Version، ثم رفع GitHub V57.9.
+رابط التشغيل بعد الرفع:
+
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_8landscapeprint`
+
+آخر Apps Script ثابت: **V50 Backup Center Pro**. لا تعدل Apps Script مع هذه النسخة.
