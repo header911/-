@@ -576,7 +576,7 @@ input::placeholder,textarea::placeholder{color:transparent!important;}
 @media(max-width:920px){.hp-v53-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.hp-v53-grid{grid-template-columns:1fr}.hp-v53-row{grid-template-columns:1fr 1fr}.hp-v53-actions{grid-column:1/-1;text-align:start}.hp-v53-actions .btn{width:100%}.hp-v53-detail-grid{grid-template-columns:1fr 1fr}.hp-v53-mini-row{grid-template-columns:1fr 1fr}.hp-v53-head{display:block}.hp-v53-tools{justify-content:flex-start;margin-top:10px}}
 @media(max-width:430px){.hp-v53-kpis,.hp-v53-row,.hp-v53-detail-grid,.hp-v53-mini-row{grid-template-columns:1fr}.hp-v53-head h2{font-size:19px}.hp-v53-modal{padding:0;align-items:stretch}.hp-v53-modal-card{border-radius:0;max-height:100vh;height:100%;padding:14px}}
 
-/* V57.8: keep large financial values inside responsive cards. */
+/* V57.9: keep large financial values inside responsive cards. */
 .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .stat-box{min-width:0!important}
 .stat-box .sv{min-width:0;overflow-wrap:anywhere;word-break:normal}

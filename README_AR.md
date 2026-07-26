@@ -1,9 +1,9 @@
-# Haydar Pack V57.8
+# Haydar Pack V57.9
 
 نسخة **Print Reliability** مبنية على V57.4 المستقرة.
 
 رابط التشغيل بعد الرفع:
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=57_8landscapeprint`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_9fixedpdf`
 
 آخر Apps Script ثابت: **V50 Backup Center Pro**. لا تعدل Apps Script مع هذه النسخة.
