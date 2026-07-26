@@ -1,22 +1,22 @@
-const HP_CACHE = 'haydar-pack-pwa-v57-9-fixed-pdf';
+const HP_CACHE = 'haydar-pack-pwa-v57-10-safe-image-pdf';
 const HP_ASSETS = [
   './',
-  './index.html?v=57_9fixedpdf',
-  './config.js?v=57_9fixedpdf',
-  './manifest.webmanifest?v=57_9fixedpdf',
+  './index.html?v=57_10safeimagepdf',
+  './config.js?v=57_10safeimagepdf',
+  './manifest.webmanifest?v=57_10safeimagepdf',
   './offline.html',
-  './assets/css/styles.css?v=57_9fixedpdf',
-  './assets/vendor/pdf-lib.min.js?v=57_9fixedpdf',
-  './hp-logo-v3-192.png?v=57_9fixedpdf',
-  './hp-logo-v3-512.png?v=57_9fixedpdf',
-  './assets/js/01-core-base.js?v=57_9fixedpdf',
-  './assets/js/02-business-legacy.js?v=57_9fixedpdf',
-  './assets/js/03-boot-calc-print.js?v=57_9fixedpdf',
-  './assets/js/04-sync-import.js?v=57_9fixedpdf',
-  './assets/js/05-feature-patches.js?v=57_9fixedpdf',
-  './assets/js/06-data-protection-images-backup.js?v=57_9fixedpdf',
-  './assets/js/07-clients-final.js?v=57_9fixedpdf',
-  './assets/js/08-post49-final-modules.js?v=57_9fixedpdf'
+  './assets/css/styles.css?v=57_10safeimagepdf',
+  './assets/vendor/pdf-lib.min.js?v=57_10safeimagepdf',
+  './hp-logo-v3-192.png?v=57_10safeimagepdf',
+  './hp-logo-v3-512.png?v=57_10safeimagepdf',
+  './assets/js/01-core-base.js?v=57_10safeimagepdf',
+  './assets/js/02-business-legacy.js?v=57_10safeimagepdf',
+  './assets/js/03-boot-calc-print.js?v=57_10safeimagepdf',
+  './assets/js/04-sync-import.js?v=57_10safeimagepdf',
+  './assets/js/05-feature-patches.js?v=57_10safeimagepdf',
+  './assets/js/06-data-protection-images-backup.js?v=57_10safeimagepdf',
+  './assets/js/07-clients-final.js?v=57_10safeimagepdf',
+  './assets/js/08-post49-final-modules.js?v=57_10safeimagepdf'
 ];
 
 self.addEventListener('install', event => {
@@ -52,7 +52,7 @@ self.addEventListener('fetch', event => {
           return response;
         })
         .catch(() => caches.match(event.request)
-          .then(cached => cached || caches.match('./index.html?v=57_9fixedpdf'))
+          .then(cached => cached || caches.match('./index.html?v=57_10safeimagepdf'))
           .then(cached => cached || caches.match('./offline.html')))
     );
     return;

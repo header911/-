@@ -4,6 +4,6 @@
 
 رابط التشغيل بعد الرفع:
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=57_9fixedpdf`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_10safeimagepdf`
 
 آخر Apps Script ثابت: **V50 Backup Center Pro**. لا تعدل Apps Script مع هذه النسخة.

@@ -5,6 +5,6 @@
 3. تأكد أن فولدر `assets` مرفوع كامل.
 4. افتح:
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=57_9fixedpdf`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_10safeimagepdf`
 
 لا تعدل Apps Script.

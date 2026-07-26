@@ -1,4 +1,11 @@
-# Haydar Pack V57.9 — Print Reliability
+# Haydar Pack V57.10 — Print Reliability
+
+## V57.10 tainted-canvas correction
+
+- Images are fetched and converted to local data URLs before the document is rendered to canvas.
+- Any image that cannot be safely converted is replaced with a transparent local placeholder instead of contaminating the canvas.
+- `srcset` and unresolved external image sources are removed from the cloned document.
+- This prevents Chrome's `Tainted canvases may not be exported` error while preserving the fixed A4-landscape PDF pipeline.
 
 ## V57.9 fixed-PDF pipeline
 
@@ -29,6 +36,6 @@
 - إصلاح قص بطاقات الأرقام الكبيرة على شاشات الموبايل.
 - تقليل فحص Google أثناء الخمول من كل 20 ثانية إلى كل 60 ثانية، وإيقافه عند إخفاء الصفحة أو انقطاع الاتصال.
 - منع Service Worker من اعتراض أو تخزين طلبات Apps Script الخارجية.
-- تقليل عناصر كاش PWA المكررة وتحديث رمز النسخة إلى `57_9fixedpdf`.
+- تقليل عناصر كاش PWA المكررة وتحديث رمز النسخة إلى `57_10safeimagepdf`.
 
 لا توجد أي خطوة ترحيل للبيانات. مفاتيح التخزين، بنية DB، أسماء الدوال العامة، ورابط Apps Script ما زالت متوافقة.
