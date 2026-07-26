@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-mobile-back-lite-fix';
-  var SITE_VERSION='57_8printroot';
+  var SITE_VERSION='57_9serverpdf';
   var booted=false, stack=[];
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
   function isMobile(){try{return window.matchMedia('(max-width: 760px)').matches}catch(e){return window.innerWidth<=760}}
@@ -33,8 +33,8 @@
 /* Haydar Pack V52 Reports Pro - V54.2 event-safe buttons */
 (function(){
   'use strict';
-  var VERSION='57.8.0-print-root-rebuild';
-  var SITE_VERSION='57_8printroot';
+  var VERSION='57.9.0-server-pdf-engine';
+  var SITE_VERSION='57_9serverpdf';
   var ROOT_ID='hp-v52-reports-pro';
 
   function byId(id){return document.getElementById(id)}
@@ -284,7 +284,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-finance-lite-fix';
-  var SITE_VERSION='57_8printroot';
+  var SITE_VERSION='57_9serverpdf';
   var ROOT_ID='hp-v53-finance-insights';
   var MODAL_ID='hp-v53-drilldown-modal';
   var lastError='';
@@ -375,8 +375,8 @@
    Final frontend tester: verifies post-V49 modules through V54, forces reports order, injects Apps Script /exec editor in sync screen. */
 (function(){
   'use strict';
-  var VERSION='57.8.0-print-root-rebuild';
-  var SITE_VERSION='57_8printroot';
+  var VERSION='57.9.0-server-pdf-engine';
+  var SITE_VERSION='57_9serverpdf';
   var REPORT_AUDIT_ID='hp-v533-post49-audit-strip';
   var BACKEND_PANEL_ID='hp-v533-backend-panel';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
@@ -455,8 +455,8 @@
    Built on V53.3 without touching sync/backend logic. */
 (function(){
   'use strict';
-  var VERSION='57.8.0-print-root-rebuild';
-  var SITE_VERSION='57_8printroot';
+  var VERSION='57.9.0-server-pdf-engine';
+  var SITE_VERSION='57_9serverpdf';
   var ROOT_ID='hp-v54-1-repair';
   var PREVIEW_MODAL_ID='hp-v54-doc-preview';
   var STATUS={draft:'Draft',sent:'Sent',paid:'Paid',cancelled:'Cancelled'};
@@ -511,11 +511,16 @@
   function header(){return '<div class="hp-doc-head"><div class="brand l"><img src="'+logo()+'"><div><div class="title-en">Haydar Pack</div><div class="sub">Eco-friendly bags &amp; printed packaging</div></div></div><div class="brand r"><img src="'+logo()+'"><div><div class="title-ar">حيدر باك</div><div class="sub">شنط قماش غير منسوجة صديقة للبيئة</div></div></div></div>'}
   function cleanFileName(v){return String(v==null?'':v).replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim().slice(0,140)||'Haydar Pack'}
   function makeDocTitle(typeOrTitle,name,no){var t=typeTitle(typeOrTitle)||String(typeOrTitle||'مستند'); if(typeOrTitle==='invoice')t='فاتورة'; if(typeOrTitle==='quote')t='عرض سعر'; if(typeOrTitle==='clientStatement'||typeOrTitle==='factoryStatement')t='كشف حساب'; return cleanFileName(t+(name?' '+name:'')+(no?' - '+no:''))}
-  function docHtml(title,no,status,metaHtml,head,body,totals,extra,fileTitle){var safeTitle=esc(cleanFileName(fileTitle||((title||'مستند')+' - '+no)));return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+safeTitle+'</title><style>'+docCss()+'</style></head><body data-hp-print-engine="57.8-root"><div class="no-print"><button type="button" onclick="window.__hpPrintNow&&window.__hpPrintNow()">طباعة / حفظ PDF</button><button type="button" onclick="window.close()">إغلاق</button></div><div class="sheet">'+header()+'<div class="doc-title">'+esc(title)+'</div>'+metaHtml+'<table class="main-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>'+totals+(extra||'')+'</div><script>(function(){function go(){var imgs=Array.prototype.slice.call(document.images||[]);var wait=imgs.map(function(img){return img.complete?Promise.resolve():new Promise(function(resolve){img.onload=resolve;img.onerror=resolve;setTimeout(resolve,1500)})});Promise.all(wait).then(function(){setTimeout(function(){try{window.focus();window.print()}catch(e){}},120)})}window.__hpPrintNow=go})();<\/script></body></html>'}
+  function docHtml(title,no,status,metaHtml,head,body,totals,extra,fileTitle){var safeTitle=esc(cleanFileName(fileTitle||((title||'مستند')+' - '+no)));return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+safeTitle+'</title><style>'+docCss()+'</style></head><body data-hp-print-engine="57.9-server-pdf"><div class="no-print"><button type="button" style="background:#0b4c9c;color:#fff" onclick="window.__hpPdfNow&&window.__hpPdfNow()">تحميل PDF مضبوط</button><button type="button" onclick="window.close()">إغلاق</button></div><div class="sheet">'+header()+'<div class="doc-title">'+esc(title)+'</div>'+metaHtml+'<table class="main-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>'+totals+(extra||'')+'</div><script>(function(){function pdf(){try{if(window.opener&&window.opener.HP_PRINT_ENGINE&&typeof window.opener.HP_PRINT_ENGINE.pdfFromPreview==="function")return window.opener.HP_PRINT_ENGINE.pdfFromPreview(document,document.title);alert("افتح المستند من داخل برنامج Haydar Pack ثم أعد المحاولة")}catch(e){alert("تعذر إرسال المستند لمحرك PDF: "+(e&&e.message||e))}}window.__hpPdfNow=pdf})();<\/script></body></html>'}
   function rowsClient(orders,mode){var body='',gross=0,disc=0,net=0,deps=0; orders.forEach(function(o){var q=billQty(o), price=n(o.price), before=q*price+n(o.aklashe), d=discount(o), after=Math.max(0,before-d), dep=n(o.deposit); gross+=before; disc+=d; net+=after; deps+=dep; body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+esc(o.type||'')+'</td><td>'+esc(sizeText(o))+'</td><td>'+esc(o.color||'')+'</td><td>'+esc(o.handle||'بدون')+'</td><td>'+esc(o.colorCount||o.colorsCount||o.printColors||'1')+'</td><td>'+esc(o.face||o.printFace||o.printSide||'وجه واحد')+'</td><td>'+count(q)+'</td><td>'+money(price)+'</td><td>'+money(q*price)+'</td></tr>'; if(n(o.aklashe)>0)body+='<tr><td>'+esc(o.code||'')+'</td><td>اكلاشيه / تجهيز طباعة</td><td>اكلاشيه</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>1</td><td>'+money(o.aklashe)+'</td><td>'+money(o.aklashe)+'</td></tr>'}); return {body:body,gross:gross,disc:disc,net:net,deps:deps}}
   function rowsFactory(orders){var body='',total=0; orders.forEach(function(o){var c=client(o.clientId), q=n(o.fQty)||n(o.qty), price=n(o.fPrice), val=factoryTotal(o); total+=val; body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(c.name||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+esc(o.type||'')+'</td><td>'+esc(sizeText(o))+'</td><td>'+esc(o.color||'')+'</td><td>'+esc(o.handle||'بدون')+'</td><td>'+count(q)+'</td><td>'+money(price)+'</td><td>'+money(val)+'</td></tr>'}); return {body:body,total:total}}
   function addRecord(rec){var docs=ensureStore(); docs.unshift(rec); if(docs.length>120)DB.documents=docs.slice(0,120); saveData('document-'+rec.type); renderCenter(); return rec}
-  function openHtml(html,autoPrint){var w=window.open('','_blank','width=1440,height=960,scrollbars=yes,resizable=yes'); if(!w){toast('المتصفح منع فتح المستند. اسمح بالـ Popups.'); return false} var out=String(html||''); if(autoPrint){var auto='<script>window.addEventListener("load",function(){setTimeout(function(){try{window.__hpPrintNow?window.__hpPrintNow():window.print()}catch(e){}},220)},{once:true});<\/script>'; out=out.replace(/<\/body>\s*<\/html>\s*$/i,auto+'</body></html>')} w.document.open(); w.document.write(out); w.document.close(); return true}
+  function openHtml(html,autoPdf){var w=window.open('','_blank','width=1440,height=960,scrollbars=yes,resizable=yes'); if(!w){toast('المتصفح منع فتح المستند. اسمح بالـ Popups.'); return false} var out=String(html||''); if(autoPdf){var auto='<script>window.addEventListener("load",function(){setTimeout(function(){try{window.__hpPdfNow&&window.__hpPdfNow()}catch(e){}},350)},{once:true});<\/script>'; out=out.replace(/<\/body>\s*<\/html>\s*$/i,auto+'</body></html>')} w.document.open(); w.document.write(out); w.document.close(); return true}
+  function pdfBackendUrl(){var u='';try{u=localStorage.getItem('haydar_pack_apps_script_url')||localStorage.getItem('HP_BACKEND_URL')||localStorage.getItem('hayder_pack_backend_url_v10')||''}catch(e){}u=String(u||window.HP_APPS_SCRIPT_URL||'').trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/i.test(u))return '';return u.split('?')[0]}
+  function textOf(el){return String((el&&(el.innerText||el.textContent))||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim()}
+  function payloadFromPreview(doc,fallbackTitle){doc=doc||document;var metaRows=Array.prototype.map.call(doc.querySelectorAll('.meta>div'),function(x){var b=x.querySelector('b'),sp=x.querySelector('span');return [textOf(b),textOf(sp)]});var headers=Array.prototype.map.call(doc.querySelectorAll('.main-table thead th'),textOf);var rows=Array.prototype.map.call(doc.querySelectorAll('.main-table tbody tr'),function(tr){return Array.prototype.map.call(tr.querySelectorAll('td'),textOf)}).filter(function(r){return r.length});var totals=Array.prototype.map.call(doc.querySelectorAll('table.totals tr'),function(tr){var td=tr.querySelectorAll('td');return [textOf(td[0]),textOf(td[1])]});var notes=[];Array.prototype.forEach.call(doc.querySelectorAll('.terms,.note'),function(x){String(x.innerText||x.textContent||'').split(/\n+/).forEach(function(v){v=v.trim();if(v)notes.push(v)})});var title=textOf(doc.querySelector('.doc-title'))||'مستند';var no='';metaRows.some(function(r){if(/رقم (المستند|الكشف)|رقم المستند|رقم الكشف/.test(r[0])){no=r[1];return true}return false});if(!no){var m=String(doc.title||'').match(/HP-\d{4}-(?:QT|INV|CS|FS)-\d+/i);if(m)no=m[0]}var fileName=cleanFileName(String(doc.title||fallbackTitle||title||'Haydar Pack').replace(/\s*-\s*Haydar Pack\s*$/i,''))+'.pdf';return {title:title,no:no,fileName:fileName,meta:metaRows,headers:headers,rows:rows,totals:totals,notes:notes}}
+  function submitPdfPayload(payload){var url=pdfBackendUrl();if(!url){toast('رابط Apps Script غير مضبوط. افتح المزامنة والحماية واحفظ رابط /exec الصحيح.');return false}if(!payload||!payload.headers||!payload.headers.length||!payload.rows||!payload.rows.length){toast('بيانات المستند غير مكتملة ولا يمكن إنشاء PDF');return false}var name='hp_pdf_'+Date.now()+'_'+Math.random().toString(36).slice(2),w=window.open('',name,'width=1440,height=960,scrollbars=yes,resizable=yes');if(!w){toast('المتصفح منع فتح PDF. اسمح بالـ Popups.');return false}try{w.document.write('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>جاري إنشاء PDF</title><body style="font-family:Arial,Tahoma,sans-serif;padding:30px;text-align:center"><h2>جاري إنشاء PDF مضبوط…</h2><p>يتم إنشاء الملف مباشرة من Google بمقاس A4 ثابت.</p></body></html>');w.document.close()}catch(e){}var form=document.createElement('form');form.method='POST';form.action=url;form.target=name;form.style.display='none';[['action','pdfPage'],['payload',JSON.stringify(payload)],['logoUrl',logo()],['appVersion',VERSION],['siteVersion',SITE_VERSION]].forEach(function(pair){var i=document.createElement('input');i.type='hidden';i.name=pair[0];i.value=pair[1];form.appendChild(i)});document.body.appendChild(form);try{form.submit()}catch(e){try{w.close()}catch(_e){}toast('تعذر إرسال المستند إلى محرك PDF');form.remove();return false}setTimeout(function(){try{form.remove()}catch(e){}},1000);return true}
+  function pdfFromPreview(doc,fallbackTitle){try{return submitPdfPayload(payloadFromPreview(doc,fallbackTitle))}catch(e){log('V579_PDF_PAYLOAD_ERROR',String(e&&e.message||e),'pdfFromPreview');toast('تعذر تجهيز بيانات PDF');return false}}
   function clientDoc(cid,type){try{var orders=selectedClientOrders(cid); if(!orders.length){toast('لا توجد أوردرات للعميل');return} var c=client(cid), no=nextNo(type), r=rowsClient(orders,type), title=typeTitle(type), dep=r.deps, head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي قبل الخصم</td><td>'+money(r.gross)+'</td></tr><tr><td>إجمالي الخصومات</td><td>'+money(r.disc)+'</td></tr><tr><td>الإجمالي بعد الخصم</td><td>'+money(r.net)+'</td></tr>'+(type==='invoice'?'<tr><td>العربون المسجل</td><td>'+money(dep)+'</td></tr><tr><td>الصافي المستحق</td><td>'+money(Math.max(0,r.net-dep))+'</td></tr>':'')+'</table>'; var extra=type==='quote'?'<div class="terms"><b>شروط عرض السعر:</b><br>برجاء مراجعة المقاسات والألوان والكميات جيدًا قبل التشغيل.<br>قد يحدث عجز أو زيادة تشغيلية في حدود 3%.<br>التشغيل يبدأ بعد اعتماد العرض ودفع العربون المتفق عليه.</div>':''; var html=docHtml(title,no,STATUS.draft,meta([['التاريخ',today()],['رقم المستند',no],['العميل',c.name],['الهاتف',c.phone||''],['العنوان',c.addr||''],['عدد الأوردرات',orders.length]]),head,r.body,totals,extra,makeDocTitle(type,c.name,no)); addRecord({id:'doc_'+Date.now()+'_'+Math.random().toString(36).slice(2),no:no,type:type,title:title,status:STATUS.draft,date:today(),createdAt:nowIso(),entityType:'client',entityId:cid,entityName:c.name||'',orders:orders.map(function(o){return o.id}),total:r.net,html:html,fileName:makeDocTitle(type,c.name,no)}); openHtml(html,false); toast('تم إنشاء '+title+' وحفظه في سجل المستندات') }catch(e){log('V54_CLIENT_DOC_ERROR',String(e&&e.message||e),type); toast('حدث خطأ أثناء إنشاء المستند')}}
   function clientStatement(cid){try{var orders=selectedClientOrders(cid); if(!orders.length){toast('لا توجد أوردرات للعميل');return} var c=client(cid), no=nextNo('clientStatement'), body='',gross=0,disc=0,net=0,deps=0; orders.forEach(function(o){var before=billQty(o)*n(o.price)+n(o.aklashe), d=discount(o), after=Math.max(0,before-d), dep=n(o.deposit); gross+=before;disc+=d;net+=after;deps+=dep; body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(o.date||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+count(billQty(o))+'</td><td>'+money(before)+'</td><td>'+money(d)+'</td><td>'+money(after)+'</td><td>'+money(dep)+'</td><td>'+money(Math.max(0,after-dep))+'</td><td>'+esc(o.status||'')+'</td></tr>'}); var ps=arr('payments').filter(function(p){return p.clientId===cid}), paid=ps.reduce(function(s,p){return s+n(p.amount)},0), remain=net+n(c.debt)-deps-paid; var head='<tr><th>كود</th><th>التاريخ</th><th>الصنف</th><th>الكمية</th><th>قبل الخصم</th><th>الخصم</th><th>بعد الخصم</th><th>العربون</th><th>باقي الأوردر</th><th>الحالة</th></tr>'; var totals='<table class="totals"><tr><td>إجمالي بعد الخصم</td><td>'+money(net)+'</td></tr><tr><td>مديونية قديمة</td><td>'+money(c.debt)+'</td></tr><tr><td>عربون الأوردرات</td><td>'+money(deps)+'</td></tr><tr><td>دفعات عامة</td><td>'+money(paid)+'</td></tr><tr><td>الرصيد النهائي</td><td>'+money(remain)+'</td></tr></table>'; var extra=ps.length?'<div class="terms"><b>الدفعات العامة المحتسبة:</b><br>'+ps.slice(0,20).map(function(p){return esc(p.date||'')+' — '+money(p.amount)+' — '+esc(p.note||'')}).join('<br>')+'</div>':''; var html=docHtml(typeTitle('clientStatement'),no,STATUS.draft,meta([['التاريخ',today()],['رقم الكشف',no],['العميل',c.name],['الهاتف',c.phone||''],['الرصيد الحالي',money(clientBalance(cid))],['عدد الأوردرات',orders.length]]),head,body,totals,extra,makeDocTitle('clientStatement',c.name,no)); addRecord({id:'doc_'+Date.now()+'_'+Math.random().toString(36).slice(2),no:no,type:'clientStatement',title:typeTitle('clientStatement'),status:STATUS.draft,date:today(),createdAt:nowIso(),entityType:'client',entityId:cid,entityName:c.name||'',orders:orders.map(function(o){return o.id}),total:remain,html:html,fileName:makeDocTitle('clientStatement',c.name,no)}); openHtml(html,false); toast('تم إنشاء كشف الحساب وحفظه') }catch(e){log('V54_CLIENT_STATEMENT_ERROR',String(e&&e.message||e),'clientStatement'); toast('حدث خطأ في كشف الحساب')}}
   function factoryStatement(fid){try{var orders=selectedFactoryOrders(fid); if(!orders.length){toast('لا توجد أوردرات للمصنع');return} var f=factory(fid), no=nextNo('factoryStatement'), r=rowsFactory(orders), ts=arr('transfers').filter(function(t){return t.factoryId===fid}), paid=ts.reduce(function(s,t){return s+n(t.amount)},0); var head='<tr><th>كود</th><th>عميل</th><th>الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>الكمية</th><th>سعر المصنع</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>إجمالي تكلفة الأوردرات</td><td>'+money(r.total)+'</td></tr><tr><td>تحويلات مسجلة</td><td>'+money(paid)+'</td></tr><tr><td>رصيد المصنع الحالي</td><td>'+money(factoryBalance(fid))+'</td></tr></table>'; var html=docHtml(typeTitle('factoryStatement'),no,STATUS.draft,meta([['التاريخ',today()],['رقم الكشف',no],['المصنع',f.name],['الهاتف',f.phone||''],['الرصيد الحالي',money(factoryBalance(fid))],['عدد الأوردرات',orders.length]]),head,r.body,totals,'',makeDocTitle('factoryStatement',f.name,no)); addRecord({id:'doc_'+Date.now()+'_'+Math.random().toString(36).slice(2),no:no,type:'factoryStatement',title:typeTitle('factoryStatement'),status:STATUS.draft,date:today(),createdAt:nowIso(),entityType:'factory',entityId:fid,entityName:f.name||'',orders:orders.map(function(o){return o.id}),total:r.total-paid,html:html,fileName:makeDocTitle('factoryStatement',f.name,no)}); openHtml(html,false); toast('تم إنشاء كشف المصنع وحفظه') }catch(e){log('V54_FACTORY_STATEMENT_ERROR',String(e&&e.message||e),'factoryStatement'); toast('حدث خطأ في كشف المصنع')}}
@@ -547,7 +552,7 @@
   function exportJson(){download('haydar-pack-v54-documents.json',JSON.stringify({exportedAt:nowIso(),documents:docs()},null,2),'application/json;charset=utf-8')}
   function injectStyle(){if(byId('hp-v54-style'))return; var st=document.createElement('style'); st.id='hp-v54-style'; st.textContent='.hp-v54-docs-pro{margin:18px 0;padding:18px;border:1px solid #dbe3ee;border-radius:18px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04)}.hp-v54-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.hp-v54-head h2{margin:3px 0;font-size:24px}.hp-v54-head p{margin:0;color:#5b6b83;font-weight:900}.hp-v54-tools{display:flex;gap:8px;flex-wrap:wrap}.hp-v54-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}.hp-v54-stats div{border:1px solid #e0e7f0;border-radius:14px;padding:10px;background:#f8fafc}.hp-v54-stats b{display:block;font-size:24px}.hp-v54-stats span{font-weight:900;color:#667085}.hp-v54-doc-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;border:1px solid #e6edf5;border-radius:14px;padding:10px;margin-bottom:8px}.hp-v54-doc-row b{font-size:16px}.hp-v54-doc-row span{display:block;color:#5b6b83;font-weight:900}.hp-v54-status{border:2px solid #111;border-radius:999px;padding:5px 10px;font-weight:900;color:#000!important}.hp-v54-status.ok{background:#d9fbe8}.hp-v54-status.blue{background:#dbeafe}.hp-v54-status.bad{background:#ffe0e0}.hp-v54-status.draft{background:#fff2c2}.hp-v54-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.hp-v54-actions select{border:2px solid #000;border-radius:10px;font-weight:900;padding:7px;background:#fff}@media(max-width:720px){.hp-v54-head{display:block}.hp-v54-tools{margin-top:10px}.hp-v54-stats{grid-template-columns:1fr 1fr}.hp-v54-doc-row{grid-template-columns:1fr}.hp-v54-actions .btn,.hp-v54-actions select{width:100%;min-height:42px}}'; document.head.appendChild(st)}
   function wrapReports(){var old=window.renderReports; if(typeof old==='function'&&!old.__hpV54Docs){var w=function(){var r=old.apply(this,arguments); setTimeout(renderCenter,60); return r}; w.__hpV54Docs=true; w.__hpOriginal=old; window.renderReports=w}}
-  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V57.8 Print Root Rebuild loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
+  function boot(){if(booted)return;booted=true;try{ensureStore();injectStyle();wrapReports();setTimeout(renderCenter,400);setTimeout(renderCenter,1200); console.log('Haydar Pack V57.9 Server PDF Engine loaded',VERSION)}catch(e){log('V54_BOOT_ERROR',String(e&&e.message||e),'boot')}}
   function installSinglePrintEngine(){
     var api={
       version:VERSION,
@@ -558,9 +563,13 @@
       printFactoryStatement:function(fid){return factoryStatement(fid)},
       openRecord:function(id){return openRecord(id,false)},
       printRecord:function(id){return openRecord(id,true)},
+      pdfFromPreview:pdfFromPreview,
+      submitPdfPayload:submitPdfPayload,
+      payloadFromPreview:payloadFromPreview,
       verify:function(){return {
         version:VERSION,
-        marker:'57.8-root',
+        marker:'57.9-server-pdf',
+        serverPdf:typeof api.pdfFromPreview==='function'&&typeof api.submitPdfPayload==='function',
         quote:window.printSelectedClientQuote===api.printQuote,
         invoice:window.printSelectedClientInvoice===api.printInvoice,
         clientStatement:window.printSelectedClientStatement===api.printClientStatement,
@@ -587,8 +596,8 @@
    post-V49 file to avoid increasing JavaScript file count. */
 (function(){
   'use strict';
-  var VERSION='57.8.0-print-root-rebuild';
-  var SITE_VERSION='57_8printroot';
+  var VERSION='57.9.0-server-pdf-engine';
+  var SITE_VERSION='57_9serverpdf';
   var CARD_ID='hp-v55-quality-gate';
   var STYLE_ID='hp-v55-quality-style';
   function $(id){return document.getElementById(id)}
@@ -606,7 +615,7 @@
       ['V52 Reports Pro', has('HP_V52_REPORTS_PRO')],
       ['V53 Finance Insights Repair', has('HP_V53_FINANCE')],
       ['V54 Documents Pro', has('HP_V54_DOCS')],
-      ['V57.8 Print Root Rebuild', has('HP_PRINT_ENGINE') && HP_PRINT_ENGINE.verify && Object.keys(HP_PRINT_ENGINE.verify()).filter(function(k){return k!=='version'&&k!=='marker'}).every(function(k){return HP_PRINT_ENGINE.verify()[k]===true})],
+      ['V57.9 Server PDF Engine', has('HP_PRINT_ENGINE') && HP_PRINT_ENGINE.verify && Object.keys(HP_PRINT_ENGINE.verify()).filter(function(k){return k!=='version'&&k!=='marker'}).every(function(k){return HP_PRINT_ENGINE.verify()[k]===true})],
       ['Apps Script URL editable', has('HP_V53_3_FINAL') && typeof window.HP_V53_3_FINAL.saveBackendUrl==='function'],
       ['V56 Capital & Wallet', has('HP_V56_CAPITAL_WALLET')],
       ['Post-V49 modules consolidated', true]
@@ -648,13 +657,13 @@
     var s=scan();
     var rowHtml=s.rows.map(function(r){return '<span class="hp-v55-pill '+(r[1]?'ok':'bad')+'">'+(r[1]?'✓ ':'! ')+esc(r[0])+'</span>'}).join('');
     var c=s.counts;
-    return '<h3>V57.7 Stable Gate — فحص رأس المال والسيولة</h3>'+
+    return '<h3>V57.9 Stable Gate — فحص رأس المال والسيولة</h3>'+
       '<div class="hp-v55-meta">الحالة بعد الاختبار: <b>'+(s.ok?'سليمة':'تحتاج مراجعة')+'</b> · آخر فحص: '+esc(s.time)+'</div>'+
       '<div class="hp-v55-grid">'+rowHtml+'</div>'+
       '<div class="hp-v55-meta">الداتا: عملاء '+c.clients+' | مصانع '+c.factories+' | أوردرات '+c.orders+' | دفعات '+c.payments+' | مستندات '+c.documents+'</div>'+
       '<div class="hp-v55-meta">أخطاء حرجة محفوظة بالسجل: '+s.criticalErrors.total+' | حديثة بعد الإصلاح: '+s.criticalErrors.recent+'</div>'+
       '<div class="hp-v55-meta" dir="ltr">Apps Script: '+esc(s.backend||'غير محدد')+'</div>'+
-      '<div class="btn-row"><button class="btn green" type="button" data-hp-v55="scan">إعادة الفحص</button><button class="btn blue" type="button" data-hp-v55="download">تنزيل تقرير V57.7</button></div>';
+      '<div class="btn-row"><button class="btn green" type="button" data-hp-v55="scan">إعادة الفحص</button><button class="btn blue" type="button" data-hp-v55="download">تنزيل تقرير V57.9</button></div>';
   }
   function place(){
     try{
@@ -667,12 +676,12 @@
   }
   function download(){
     var s=scan();
-    var txt='Haydar Pack V57.7 Stable Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
-    try{var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haydar_pack_v56_regression_report.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){alert(txt)}
+    var txt='Haydar Pack V57.9 Stable Gate Report\nTime: '+s.time+'\nStatus: '+(s.ok?'OK':'Needs review')+'\nBackend: '+s.backend+'\nCounts: '+JSON.stringify(s.counts)+'\nOld critical errors: '+s.oldErrors+'\n\nModules:\n'+s.rows.map(function(r){return (r[1]?'OK  ':'MISS')+' - '+r[0]}).join('\n');
+    try{var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haydar_pack_v57_9_regression_report.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){alert(txt)}
   }
   function bind(){if(window.__HP_V55_QG_EVENTS)return;window.__HP_V55_QG_EVENTS=true;document.addEventListener('click',function(ev){var b=ev.target&&ev.target.closest?ev.target.closest('[data-hp-v55]'):null;if(!b)return;try{ev.preventDefault();ev.stopPropagation()}catch(e){}var a=b.getAttribute('data-hp-v55');if(a==='scan')place();if(a==='download')download();},true)}
   function wrapShowPage(){var old=window.showPage;if(typeof old!=='function'||old.__hpV55QG)return;var w=function(){var r=old.apply(this,arguments);setTimeout(place,120);setTimeout(function(){try{if(window.HP_V53_FINANCE&&typeof HP_V53_FINANCE.refresh==='function')HP_V53_FINANCE.refresh(); if(window.HP_V54_DOCS&&typeof HP_V54_DOCS.refresh==='function')HP_V54_DOCS.refresh()}catch(e){}},250);return r};w.__hpV55QG=true;w.__hpOriginal=old;window.showPage=w}
-  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V57.7 Stable Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
+  function boot(){try{bind();wrapShowPage();place();setTimeout(place,800);setInterval(function(){if((window.activePage||'')==='sync'||document.querySelector('#dr-sync.open,#dr-sync .drawer'))place()},2500);console.log('Haydar Pack V57.9 Stable Gate loaded',VERSION)}catch(e){try{console.error(e)}catch(_){}}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300)});else setTimeout(boot,300);
   window.HP_V55_QUALITY_GATE={version:VERSION,siteVersion:SITE_VERSION,scan:scan,render:place,download:download};
 })();
@@ -683,8 +692,8 @@
    House expenses affect liquidity and monthly net after house expenses, not the base order profit. */
 (function(){
   'use strict';
-  var VERSION='57.8.0-print-root-rebuild';
-  var SITE_VERSION='57_8printroot';
+  var VERSION='57.9.0-server-pdf-engine';
+  var SITE_VERSION='57_9serverpdf';
   var PAGE='capital';
   var PAGE_ID='pg-capital';
   var NAV_ID='hp-v56-nav';
@@ -861,7 +870,7 @@
 /* ===== V57.7 Internal Cleanup + Smart Summary (no new JS files) ===== */
 (function(){
   'use strict';
-  var VERSION='57.8.0-print-root-rebuild', SITE_VERSION='57_8printroot';
+  var VERSION='57.9.0-server-pdf-engine', SITE_VERSION='57_9serverpdf';
   function q(s,root){return (root||document).querySelector(s)}
   function qa(s,root){return Array.prototype.slice.call((root||document).querySelectorAll(s))}
   function byId(id){return document.getElementById(id)}
@@ -935,7 +944,7 @@
     var c=calculate();
     var clsLiquidity=c.liquidity<0?'bad':(c.factoryDue>0&&c.liquidity<c.factoryDue*.15?'warn':'good');
     return '<section id="hp-v573-daily-summary" class="hp-v573-summary">'
-      +'<div class="hp-v573-summary-head"><div><h2>ملخص اليوم</h2><p>نظرة سريعة على السيولة، رأس المال، والتحصيل قبل ما تبدأ شغلك.</p></div><span class="hp-v573-pill">V57.7 Smart Summary</span></div>'
+      +'<div class="hp-v573-summary-head"><div><h2>ملخص اليوم</h2><p>نظرة سريعة على السيولة، رأس المال، والتحصيل قبل ما تبدأ شغلك.</p></div><span class="hp-v573-pill">V57.9 Smart Summary</span></div>'
       +'<div class="hp-v573-kpis">'
       +'<div class="hp-v573-kpi '+clsLiquidity+'"><span>السيولة الفعلية</span><b>'+money(c.liquidity)+'</b></div>'
       +'<div class="hp-v573-kpi bad"><span>مديونية العملاء</span><b>'+money(c.receivables)+'</b></div>'
