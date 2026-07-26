@@ -1,9 +1,17 @@
 # Haydar Pack V57.8
 
-نسخة **Print Reliability** مبنية على V57.4 المستقرة.
+نسخة **V57.8 Print Reliability** مع صفحة سيولة مبسطة، مبنية على النسخة التي ثبت نجاح طباعتها.
 
 رابط التشغيل بعد الرفع:
 
-`https://headersobhy-code.github.io/Haydar-Pack/?v=57_8landscapeprint`
+`https://headersobhy-code.github.io/Haydar-Pack/?v=57_8liquiditysimple`
+
+التعديل الحالي:
+
+- نفس عدد القوائم: 6 قوائم.
+- صفحة السيولة تعرض الأرقام الأساسية، حركة الفلوس، وأولوية التحصيل والتسوية.
+- التفاصيل الثانوية موجودة داخل أقسام قابلة للفتح عند الحاجة.
+- Reports Pro V52 وV53 لم يعودا مكررين داخل صفحة التقارير.
+- محرك طباعة V57.8 لم يتغير.
 
 آخر Apps Script ثابت: **V50 Backup Center Pro**. لا تعدل Apps Script مع هذه النسخة.

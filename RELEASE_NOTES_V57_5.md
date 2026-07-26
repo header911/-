@@ -1,5 +1,16 @@
 # Haydar Pack V57.8 — Print Reliability
 
+## Simple Liquidity update
+
+- تبسيط صفحة السيولة لتعرض: السيولة المتاحة، المطلوب من العملاء، والمطلوب للمصانع.
+- إضافة ملخص حركة الفلوس وتوصيات «ماذا أفعل اليوم؟».
+- نقل المعلومات المفيدة من Reports Pro V52 وV53 إلى السيولة بدون تكرار واجهاتهما.
+- إبقاء التفاصيل في أقسام اختيارية لتظل الصفحة سهلة وواضحة.
+- الحفاظ على نفس عدد القوائم: 6.
+- إزالة شريط الفحص التقني وأقسام V52/V53 المكررة من صفحة التقارير.
+- تحديث رمز الكاش إلى `57_8liquiditysimple`.
+- عدم تعديل محرك الطباعة المستقر في V57.8.
+
 ## V57.8 Chrome orientation correction
 
 - Removed the V57.7 fixed `281mm` document width that caused clipping when Chrome retained a portrait layout viewport.

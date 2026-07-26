@@ -211,7 +211,7 @@
 (function(){
   'use strict';
   var VERSION='57.8.0-landscape-print';
-  var SITE_VERSION='57_8landscapeprint';
+  var SITE_VERSION='57_8liquiditysimple';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
@@ -314,7 +314,7 @@
 (function(){
   'use strict';
   var VERSION='57.8.0-landscape-print';
-  var SITE_VERSION='57_8landscapeprint';
+  var SITE_VERSION='57_8liquiditysimple';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}

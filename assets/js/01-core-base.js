@@ -1489,7 +1489,7 @@ window.HP_V37_LEGACY_BOOT_DISABLED=true;
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js?v=57_8landscapeprint').catch(function(e){console.warn('SW registration failed', e)});
+    navigator.serviceWorker.register('./sw.js?v=57_8liquiditysimple').catch(function(e){console.warn('SW registration failed', e)});
   });
 }
 
@@ -1521,4 +1521,3 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   }catch(e){}
   document.addEventListener('DOMContentLoaded',function(){hpApplyDefaultBagColor(false)});
 })();
-
