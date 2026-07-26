@@ -867,8 +867,8 @@ function openOrderDetail(id){
     var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr>'+(mode==='invoice'?'<tr><td>العربون المسجل</td><td>'+money(orders.reduce(function(s,o){return s+num(o.deposit)},0))+'</td></tr><tr><td>الصافي المستحق</td><td>'+money(Math.max(0,tr.total-orders.reduce(function(s,o){return s+num(o.deposit)},0)))+'</td></tr>':'')+'</table>';
     openPrintDoc(baseDocHtml(title,clientMeta(c,no),head,tr.rows,totals,mode==='quote'?quoteTerms():''));
   }
-  window.printSelectedClientQuote=function(cid){ printClientDoc(cid,'quote'); };
-  window.printSelectedClientInvoice=function(cid){ printClientDoc(cid,'invoice'); };
+  window.__HP_LEGACY_DISABLED_printSelectedClientQuote=function(cid){ printClientDoc(cid,'quote'); };
+  window.__HP_LEGACY_DISABLED_printSelectedClientInvoice=function(cid){ printClientDoc(cid,'invoice'); };
 
   function factoryPeriodFilteredOrders(fid){ var list=factoryOrders(fid).slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))}); if(factoryDetailPeriod==='month') list=list.filter(function(o){return (o.date||'').slice(0,7)===factoryDetailMonth}); return list; }
   function factoryPeriodTransfers(fid){ var trs=(DB.transfers||[]).filter(function(t){return t.factoryId===fid}); if(factoryDetailPeriod==='month') trs=trs.filter(function(t){return (t.date||'').slice(0,7)===factoryDetailMonth}); return trs; }
@@ -876,7 +876,7 @@ function openOrderDetail(id){
   function factoryMonthPaid(fid,m){ return (DB.transfers||[]).filter(function(t){return t.factoryId===fid && (t.date||'').slice(0,7)===(m||curMonth())}).reduce(function(s,t){return s+num(t.amount)},0); }
   window.setFactoryDetailPeriod=function(fid,p){ factoryDetailPeriod=p; openFactoryDetail(fid); };
   window.setFactoryDetailMonth=function(fid,m){ factoryDetailMonth=m||curMonth(); factoryDetailPeriod='month'; openFactoryDetail(fid); };
-  window.printSelectedFactoryStatement=function(fid){
+  window.__HP_LEGACY_DISABLED_printSelectedFactoryStatement=function(fid){
     var orders=factorySelectedOrders(fid); if(!orders.length){ toast('حدد أوردر واحد على الأقل من المصنع'); return; }
     var f=getFactory(fid), no=docNo('FS'), tr=tableRowsForFactory(orders), trs=factoryPeriodTransfers(fid), paid=trs.reduce(function(s,t){return s+num(t.amount)},0);
     var meta='<div><b>التاريخ</b><span>'+safe(nowDate())+'</span></div><div><b>رقم الكشف</b><span>'+safe(no)+'</span></div><div><b>المصنع</b><span>'+safe(f.name||'')+'</span></div><div><b>الفترة</b><span>'+(factoryDetailPeriod==='month'?safe(monthLabel(factoryDetailMonth)):'كل الفترات')+'</span></div>';
@@ -1080,9 +1080,9 @@ function openOrderDetail(id){
   function openDoc(html){ var w=window.open('','_blank'); if(!w){toast('المتصفح منع فتح نافذة الطباعة. اسمح بالـ Popups وجرب تاني.');return;} w.document.open(); w.document.write(html); w.document.close(); }
   function clientMeta2(c,no){ return '<div><b>التاريخ</b><span>'+safeTxt(today())+'</span></div><div><b>رقم المستند</b><span>'+safeTxt(no)+'</span></div><div><b>كود العميل</b><span>'+safeTxt(c.code||'')+'</span></div><div><b>العميل</b><span>'+safeTxt(c.name||'')+'</span></div><div><b>رقم الهاتف</b><span>'+safeTxt(c.phone||'')+'</span></div><div><b>العنوان</b><span>'+safeTxt(c.addr||'')+'</span></div>'; }
   function factoryMeta2(f,no){ return '<div><b>التاريخ</b><span>'+safeTxt(today())+'</span></div><div><b>رقم الكشف</b><span>'+safeTxt(no)+'</span></div><div><b>كود المصنع</b><span>'+safeTxt(f.code||'')+'</span></div><div><b>المصنع</b><span>'+safeTxt(f.name||'')+'</span></div><div><b>الفترة</b><span>'+safeTxt(filterLabel())+'</span></div>'; }
-  window.printSelectedClientQuote=function(cid){ var c=getClient(cid), orders=selectedClientOrders(cid); if(!orders.length){toast('حدد أوردر واحد على الأقل');return;} var tr=clientRows(orders,'quote'), head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>نوع الشنطة</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr></table>'; openDoc(docHtml('عرض سعر',clientMeta2(c,'QT-'+Date.now().toString().slice(-6)),head,tr.rows,totals,quoteTerms())); };
-  window.printSelectedClientInvoice=function(cid){ var c=getClient(cid), orders=selectedClientOrders(cid); if(!orders.length){toast('حدد أوردر واحد على الأقل');return;} var tr=clientRows(orders,'invoice'), head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>نوع الشنطة</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr></table>'; openDoc(docHtml('فاتورة بيع',clientMeta2(c,'INV-'+Date.now().toString().slice(-6)),head,tr.rows,totals,'')); };
-  window.printSelectedFactoryStatement=function(fid){ var f=getFactory(fid), orders=selectedFactoryOrders(fid); if(!orders.length) orders=factoryOrdersFiltered(fid); if(!orders.length){toast('لا توجد أوردرات للتصدير');return;} var tr=factoryRows(orders), trs=factoryTransfersFiltered(fid), paid=trs.reduce(function(s,t){return s+num(t.amount)},0), remain=tr.total-paid; var head='<tr><th>كود الأوردر</th><th>عميل</th><th>اسم الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr><tr><td>المدفوع</td><td>'+money(paid)+'</td></tr><tr><td>المتبقى</td><td>'+money(remain)+'</td></tr></table>'; openDoc(docHtml('كشف حساب مصنع',factoryMeta2(f,'FS-'+Date.now().toString().slice(-6)),head,tr.rows,totals,'')); };
+  window.__HP_LEGACY_DISABLED_printSelectedClientQuote=function(cid){ var c=getClient(cid), orders=selectedClientOrders(cid); if(!orders.length){toast('حدد أوردر واحد على الأقل');return;} var tr=clientRows(orders,'quote'), head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>نوع الشنطة</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr></table>'; openDoc(docHtml('عرض سعر',clientMeta2(c,'QT-'+Date.now().toString().slice(-6)),head,tr.rows,totals,quoteTerms())); };
+  window.__HP_LEGACY_DISABLED_printSelectedClientInvoice=function(cid){ var c=getClient(cid), orders=selectedClientOrders(cid); if(!orders.length){toast('حدد أوردر واحد على الأقل');return;} var tr=clientRows(orders,'invoice'), head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>نوع الشنطة</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr></table>'; openDoc(docHtml('فاتورة بيع',clientMeta2(c,'INV-'+Date.now().toString().slice(-6)),head,tr.rows,totals,'')); };
+  window.__HP_LEGACY_DISABLED_printSelectedFactoryStatement=function(fid){ var f=getFactory(fid), orders=selectedFactoryOrders(fid); if(!orders.length) orders=factoryOrdersFiltered(fid); if(!orders.length){toast('لا توجد أوردرات للتصدير');return;} var tr=factoryRows(orders), trs=factoryTransfersFiltered(fid), paid=trs.reduce(function(s,t){return s+num(t.amount)},0), remain=tr.total-paid; var head='<tr><th>كود الأوردر</th><th>عميل</th><th>اسم الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>'; var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr><tr><td>المدفوع</td><td>'+money(paid)+'</td></tr><tr><td>المتبقى</td><td>'+money(remain)+'</td></tr></table>'; openDoc(docHtml('كشف حساب مصنع',factoryMeta2(f,'FS-'+Date.now().toString().slice(-6)),head,tr.rows,totals,'')); };
 
   var oldOpenClientDetailV6=openClientDetail;
   openClientDetail=function(cid){ oldOpenClientDetailV6(cid); try{ ensureEntityCodes(); var c=getClient(cid); var body=$id('client-detail-body'); if(body && body.innerHTML.indexOf('كود العميل')<0){ var title=body.querySelector('.drawer-title'); if(title) title.insertAdjacentHTML('afterend','<div class="row-sub">كود العميل: '+safeTxt(c.code||'')+'</div>'); } }catch(e){console.error(e)} };
@@ -1164,9 +1164,9 @@ function openOrderDetail(id){
   function clientRows2(orders,mode){var rows='',total=0;orders.forEach(function(o){var qty=mode==='quote'?n(o.qty):billQty(o),price=n(o.price),line=qty*price;total+=line;rows+='<tr><td>'+txt(o.code||'')+'</td><td>'+txt(itemName2(o))+'</td><td>'+txt(o.type||'')+'</td><td>'+txt(o.color||'')+'</td><td>'+txt(o.handle||'بدون')+'</td><td>'+txt(colorCount2(o))+'</td><td>'+txt(face2(o))+'</td><td>'+countFmt(qty)+'</td><td>'+money(price)+'</td><td>'+money(line)+'</td></tr>';if(n(o.aklashe)>0){total+=n(o.aklashe);rows+='<tr><td>'+txt(o.code||'')+'</td><td>اكلاشيه</td><td>اكلاشيه</td><td>بدون</td><td>بدون</td><td>-</td><td>-</td><td>1</td><td>'+money(o.aklashe)+'</td><td>'+money(o.aklashe)+'</td></tr>'}});return {rows:rows,total:total}}
   function quoteTerms2(){return '<div class="terms"><b>ملاحظات عرض السعر:</b><br>برجاء مراجعة المقاسات والالوان والكمية والاسعار جيدا<br>قد يصل معدل العجز او الزيادة الى نسبة 3 %<br>مدة تسليم الاوردر من 10 الى 15 يوم من تاريخ دفع العربون<br>يتم التشغيل بعد دفع 50 % عربون من قيمة عرض السعر</div>'}
   function printClientDoc2(cid,mode){var orders=selectedClientOrders2(cid);if(!orders.length){toast('حدد أوردر واحد على الأقل');return}var c=getClient2(cid),no=nextDocNo(mode==='quote'?'QT':'INV'),tr=clientRows2(orders,mode),head='<tr><th>كود الأوردر</th><th>اسم الصنف</th><th>نوع الشنطة</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر الشنطة</th><th>القيمة</th></tr>';var dep=orders.reduce(function(s,o){return s+n(o.deposit)},0);var totals='<table class="totals"><tr><td>الإجمالي</td><td>'+money(tr.total)+'</td></tr>'+(mode==='invoice'?'<tr><td>العربون المسجل</td><td>'+money(dep)+'</td></tr><tr><td>الصافي المستحق</td><td>'+money(Math.max(0,tr.total-dep))+'</td></tr>':'')+'</table>';openDoc2(docHtml2(mode==='quote'?'عرض سعر':'فاتورة بيع',no,clientMeta(c,no),head,tr.rows,totals,mode==='quote'?quoteTerms2():'','landscape'))}
-  window.printSelectedClientQuote=function(cid){printClientDoc2(cid,'quote')};
-  window.printSelectedClientInvoice=function(cid){printClientDoc2(cid,'invoice')};
-  window.printSelectedClientStatement=function(cid){
+  window.__HP_LEGACY_DISABLED_printSelectedClientQuote=function(cid){printClientDoc2(cid,'quote')};
+  window.__HP_LEGACY_DISABLED_printSelectedClientInvoice=function(cid){printClientDoc2(cid,'invoice')};
+  window.__HP_LEGACY_DISABLED_printSelectedClientStatement=function(cid){
     var orders=selectedClientOrders2(cid); if(!orders.length){toast('حدد أوردر واحد على الأقل');return}
     var c=getClient2(cid), no=nextDocNo('CS'), allOrders=(DB.orders||[]).filter(function(o){return o.clientId===cid}), fullAccount=allOrders.length===orders.length&&allOrders.every(function(o){return orders.some(function(x){return x.id===o.id})}), ordersTotal=0, orderRows='';
     orders.forEach(function(o){var val=clientTotalForOrder(o);ordersTotal+=val;orderRows+='<tr><td>'+txt(o.code||'')+'</td><td>'+txt(o.date||'')+'</td><td>'+txt(itemName2(o))+'</td><td>'+txt(o.type||'')+'</td><td>'+countFmt(billQty(o))+'</td><td>'+money(n(o.price))+'</td><td>'+money(val)+'</td><td>'+txt(o.status||'')+'</td></tr>'});
@@ -1182,7 +1182,7 @@ function openOrderDetail(id){
     openDoc2(docHtml2('كشف حساب عميل',no,clientMeta(c,no),head,orderRows,totals,payHtml,'landscape'));
   };
   function factoryRows2(orders){var rows='',total=0;orders.forEach(function(o){var c=getClient2(o.clientId),qty=n(o.fQty)||n(o.qty),price=n(o.fPrice),line=qty*price;total+=line;rows+='<tr><td>'+txt(o.code||'')+'</td><td>'+txt(c.name||'')+'</td><td>'+txt(itemName2(o))+'</td><td>'+txt(o.type||'')+'</td><td>'+txt(sizeTxt(o))+'</td><td>'+txt(o.color||'')+'</td><td>'+txt(o.handle||'بدون')+'</td><td>'+txt(colorCount2(o))+'</td><td>'+txt(face2(o))+'</td><td>'+countFmt(qty)+'</td><td>'+money(price)+'</td><td>'+money(line)+'</td></tr>';if(n(o.fAk)>0){total+=n(o.fAk);rows+='<tr><td>'+txt(o.code||'')+'</td><td>'+txt(c.name||'')+'</td><td>اكلاشيه</td><td>اكلاشيه</td><td>-</td><td>بدون</td><td>بدون</td><td>-</td><td>-</td><td>1</td><td>'+money(o.fAk)+'</td><td>'+money(o.fAk)+'</td></tr>'}});return {rows:rows,total:total}}
-  window.printSelectedFactoryStatement=function(fid){
+  window.__HP_LEGACY_DISABLED_printSelectedFactoryStatement=function(fid){
     var f=getFactory2(fid), selected=selectedFactoryOrders2(fid), allFactory=(DB.orders||[]).filter(function(o){return o.factoryId===fid}), filtered=allFactory.filter(function(o){return inCurrentFactoryFilter(o.date)}), orders=selected.length?selected:filtered;
     if(!orders.length){toast('لا توجد أوردرات للتصدير');return}
     var fullAccount=allFactory.length===orders.length&&allFactory.every(function(o){return orders.some(function(x){return x.id===o.id})});
@@ -1227,7 +1227,7 @@ function openOrderDetail(id){
 // ================= V8 DATA SAFETY + LOCAL GOOGLE DRIVE FOLDER BACKUP =================
 (function(){
   'use strict';
-  var HP_APP_VERSION='57.10.0-safe-image-pdf';
+  var HP_APP_VERSION='57.8.0-print-root-rebuild';
   var HP_SCHEMA_VERSION=10;
   var HP_LOCAL_KEY='hayder_bags_app';
   var HP_CURRENT_FILE='HayderPack_Current_Data.json';
@@ -1489,7 +1489,7 @@ window.HP_V37_LEGACY_BOOT_DISABLED=true;
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js?v=57_10safeimagepdf').catch(function(e){console.warn('SW registration failed', e)});
+    navigator.serviceWorker.register('./sw.js').catch(function(e){console.warn('SW registration failed', e)});
   });
 }
 
@@ -1521,4 +1521,5 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   }catch(e){}
   document.addEventListener('DOMContentLoaded',function(){hpApplyDefaultBagColor(false)});
 })();
+
 

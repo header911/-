@@ -165,7 +165,7 @@
     openDrawer('dr-settings'); renderDeleteLogArea();
   };
   window.hpStage6HardReload=function(){
-    var base=location.href.split('?')[0]; location.href=base+'?v=57_10safeimagepdf&safeReload='+Date.now();
+    var base=location.href.split('?')[0]; location.href=base+'?v=57_8printroot&safeReload='+Date.now();
   };
   if(!window.manualSyncNow){
     window.manualSyncNow=function(){
@@ -363,10 +363,10 @@
   function factoryRows(orders){var body='',total=0;orders.forEach(function(o){var c=getClient(o.clientId),q=n(o.fQty)||n(o.qty),price=n(o.fPrice),ak=n(o.fAk),val=factoryTotal(o);total+=val;body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(c.name||'')+'</td><td>'+esc(orderTitle(o))+'</td><td>'+esc(o.type||'')+'</td><td>'+esc(sizeText(o))+'</td><td>'+esc(o.color||'')+'</td><td>'+esc(o.handle||'بدون')+'</td><td>'+esc(colorCount(o))+'</td><td>'+esc(printFace(o))+'</td><td>'+count(q)+'</td><td>'+money(price)+'</td><td>'+money(val)+'</td></tr>';if(ak>0){body+='<tr><td>'+esc(o.code||'')+'</td><td>'+esc(c.name||'')+'</td><td>اكلاشيه / تجهيز طباعة</td><td>اكلاشيه</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>1</td><td>'+money(ak)+'</td><td>'+money(ak)+'</td></tr>'}});return {body:body,total:total}}
   function factoryStatement(fid){var orders=selectedFactoryOrders(fid);if(!orders.length){try{toast('لا توجد أوردرات للتصدير')}catch(e){}return}var f=getFactory(fid),no=docNo('FS'),rows=factoryRows(orders),trs=(typeof window.factoryPeriodTransfers==='function')?window.factoryPeriodTransfers(fid):arr('transfers').filter(function(t){return t.factoryId===fid}),paid=trs.reduce(function(s,t){return s+n(t.amount)},0),head='<tr><th>كود الأوردر</th><th>عميل</th><th>اسم الصنف</th><th>النوع</th><th>المقاس</th><th>لون الشنطة</th><th>لون اليد</th><th>عدد الألوان</th><th>وجه</th><th>الكمية</th><th>سعر المصنع</th><th>القيمة</th></tr>',tot='<table class="totals"><tr><td>إجمالي مستحق المحدد</td><td>'+money(rows.total)+'</td></tr><tr><td>تحويلات الفترة</td><td>'+money(paid)+'</td></tr><tr><td>الصافي</td><td>'+money(rows.total-paid)+'</td></tr></table>',extra=trs.length?'<div class="section-title">تحويلات الفترة المسجلة</div><table><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>ملاحظة</th></tr></thead><tbody>'+trs.map(function(t){return '<tr><td>'+esc(t.date||'')+'</td><td>'+esc(t.type||'')+'</td><td>'+money(t.amount)+'</td><td>'+esc(t.note||'')+'</td></tr>'}).join('')+'</tbody></table>':'<div class="note">لا توجد تحويلات مسجلة في الفترة المختارة.</div>';openDoc(baseDoc('كشف حساب مصنع',no,metaHtml([['التاريخ',today()],['رقم الكشف',no],['المصنع',f.name],['رقم الهاتف',f.phone||''],['الفترة',(typeof factoryDetailPeriod!=='undefined'&&factoryDetailPeriod==='month'&&typeof monthLabel==='function')?monthLabel(factoryDetailMonth):'كل الفترات']]),head,rows.body,tot,extra))}
   window.HP_DOC={version:VER,openDoc:openDoc,baseDoc:baseDoc,clientDocument:clientDocument,clientStatement:clientStatement,factoryStatement:factoryStatement};
-  window.printSelectedClientQuote=function(cid){clientDocument(cid,'quote')};
-  window.printSelectedClientInvoice=function(cid){clientDocument(cid,'invoice')};
-  window.printSelectedClientStatement=function(cid){clientStatement(cid)};
-  window.printSelectedFactoryStatement=function(fid){factoryStatement(fid)};
+  window.__HP_LEGACY_DISABLED_printSelectedClientQuote=function(cid){clientDocument(cid,'quote')};
+  window.__HP_LEGACY_DISABLED_printSelectedClientInvoice=function(cid){clientDocument(cid,'invoice')};
+  window.__HP_LEGACY_DISABLED_printSelectedClientStatement=function(cid){clientStatement(cid)};
+  window.__HP_LEGACY_DISABLED_printSelectedFactoryStatement=function(fid){factoryStatement(fid)};
 })();
 
 
