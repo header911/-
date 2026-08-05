@@ -16,7 +16,7 @@
   var SNAP_META_KEY='hayder_pack_v39_last_safe_snapshot_meta';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
   var OLD_URL_KEY='hayder_pack_backend_url_v10';
-  var FIXED_URL='https://script.google.com/macros/s/AKfycbw0RxMaw2gNicQjSD5T3LHhd-6d2DnABYKGNNMDD1NN3b09wJL3OatLviAn7xqDu2Zq6w/exec';
+  var FIXED_URL='https://script.google.com/macros/s/AKfycbyz3ChhXQ2xMZdD2UHmAsLitbgIvKcSGiQYX7zBNNrJb6h9lem5sLlOBgpkPCOyrWZd2A/exec';
 
   function $(id){return document.getElementById(id)}
   function arr(v){return Array.isArray(v)?v:[]}
@@ -195,7 +195,7 @@
     saveSafeSnapshot('before-safe-reload');
     try{await cloudPreflight(true)}catch(e){toastSafe((e&&e.message)||'فشل فحص الأمان — سيتم إعادة تحميل الصفحة فقط بدون مسح')}
     var base=location.href.split('?')[0];
-    location.href=base+'?v=58_0_0_stable&safeReload='+Date.now();
+    location.href=base+'?v=production_20260805_fix1&safeReload='+Date.now();
   };
   function panelHtml(){
     var c=counts(currentDB()), snap=readSafeSnapshot(), sc=snap&&snap.counts;
@@ -259,7 +259,7 @@
   var IMG_QUEUE_KEY='hayder_pack_v40_image_queue';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
   var OLD_URL_KEY='hayder_pack_backend_url_v10';
-  var FIXED_URL='https://script.google.com/macros/s/AKfycbw0RxMaw2gNicQjSD5T3LHhd-6d2DnABYKGNNMDD1NN3b09wJL3OatLviAn7xqDu2Zq6w/exec';
+  var FIXED_URL='https://script.google.com/macros/s/AKfycbyz3ChhXQ2xMZdD2UHmAsLitbgIvKcSGiQYX7zBNNrJb6h9lem5sLlOBgpkPCOyrWZd2A/exec';
   var uploadTimer=null, processing=false, syncDebounce=null;
 
   function $(id){return document.getElementById(id)}
@@ -341,14 +341,14 @@
    Scope: sync/backup UI only. Does not alter clients/orders/invoices/calculations. */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
   var OLD_URL_KEY='hayder_pack_backend_url_v10';
-  var FIXED_URL='https://script.google.com/macros/s/AKfycbw0RxMaw2gNicQjSD5T3LHhd-6d2DnABYKGNNMDD1NN3b09wJL3OatLviAn7xqDu2Zq6w/exec';
+  var FIXED_URL='https://script.google.com/macros/s/AKfycbyz3ChhXQ2xMZdD2UHmAsLitbgIvKcSGiQYX7zBNNrJb6h9lem5sLlOBgpkPCOyrWZd2A/exec';
   var statusCache=null, loadingBackups=false, observer=null, lastAutoBackupAt=0, booted=false, simpleTimer=null;
 
   function $(id){return document.getElementById(id)}
@@ -621,8 +621,8 @@
 /* ===== BEGIN V50 FINAL STABILITY GUARD ===== */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var LOG_KEY='hayder_pack_error_log_v49';
   var MAX_LOGS=80;
   var wrapped=false;
@@ -684,7 +684,7 @@
   function widgetHtml(){
     var s=statusText(), last=s.last;
     return '<div id="hp-v49-stability-widget" class="hp-v49-card">'
-      +'<div class="hp-v49-head"><i class="ti ti-activity-heartbeat"></i> حالة النظام V58</div>'
+      +'<div class="hp-v49-head"><i class="ti ti-activity-heartbeat"></i> حالة النظام</div>'
       +'<div class="hp-v49-grid">'
       +'<div class="hp-v49-mini"><b>الأخطاء المسجلة</b><span id="hp-v49-count" class="'+s.cls+'">'+esc(String(s.logs.length))+'</span></div>'
       +'<div class="hp-v49-mini"><b>آخر خطأ</b><span id="hp-v49-last">'+esc(last?(last.message||'—'):'لا يوجد')+'</span></div>'

@@ -1,19 +1,20 @@
-/* Haydar Pack V58 — confirmed Google mutations without UI redesign. */
+/* Haydar Pack production sync — confirmed Google mutations without UI redesign. */
 (function(){
   'use strict';
 
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
-  var CONFIRMED_KEY='hayder_pack_confirmed_state_v58';
+  var CONFIRMED_KEY='hayder_pack_confirmed_state_current';
+  var LEGACY_CONFIRMED_KEY='hayder_pack_confirmed_state_v58';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
   var OLD_URL_KEY='hayder_pack_backend_url_v10';
   var DEVICE_KEY='hayder_pack_device_id_v37';
-  var EMERGENCY_KEY='hayder_pack_emergency_local_backup_v58';
+  var EMERGENCY_KEY='hayder_pack_emergency_local_backup_current';
   var LEGACY_PENDING_KEYS=['hayder_pack_stage4_pending_v32','hayder_pack_pwa_pending_v10','hayder_pack_unsynced_v9'];
-  var FIXED_URL='https://script.google.com/macros/s/AKfycbw0RxMaw2gNicQjSD5T3LHhd-6d2DnABYKGNNMDD1NN3b09wJL3OatLviAn7xqDu2Zq6w/exec';
+  var FIXED_URL='https://script.google.com/macros/s/AKfycbyz3ChhXQ2xMZdD2UHmAsLitbgIvKcSGiQYX7zBNNrJb6h9lem5sLlOBgpkPCOyrWZd2A/exec';
   var RETRY_DELAYS=[4000,8000,15000,30000,60000,120000];
 
   var state={revision:0,updatedAt:'',ackHash:'',stateHash:'',lastLocalSaveAt:'',lastCloudSaveAt:'',lastError:'',lastErrorCategory:'',lastAttemptAt:'',deviceId:'',backendVersion:'',serviceWorkerVersion:SITE_VERSION};
@@ -65,7 +66,7 @@
   function errorMessage(error){return String(error&&error.message||error||'تعذر تنفيذ الطلب')}
 
   function installToastGuard(){
-    if(typeof originalToast!=='function'||window.toast&&window.toast.__hpV58Guard)return;
+    if(typeof originalToast!=='function'||window.toast&&window.toast.__hpConfirmedGuard)return;
     var guarded=function(message){
       var text=String(message||'');
       if(!allowConfirmedToast&&pendingData()&&/^تم (حفظ|إضافة|تعديل|تسجيل|تحديث|نقل|حذف|إنشاء)/.test(text)){
@@ -73,7 +74,7 @@
       }
       return originalToast(message);
     };
-    guarded.__hpV58Guard=true;
+    guarded.__hpConfirmedGuard=true;
     window.toast=guarded;
     try{toast=guarded}catch(error){}
   }
@@ -105,7 +106,7 @@
 
   function saveState(){deviceId();writeJSON(META_KEY,state);updateUI()}
   function loadState(){var old=readJSON(META_KEY,{});if(old&&typeof old==='object')Object.assign(state,old);deviceId();saveState()}
-  function readConfirmed(){var value=readJSON(CONFIRMED_KEY,null);return value&&value.data?value:null}
+  function readConfirmed(){var value=readJSON(CONFIRMED_KEY,null)||readJSON(LEGACY_CONFIRMED_KEY,null);if(value&&value.data){writeJSON(CONFIRMED_KEY,value);return value}return null}
   function writeConfirmed(data,meta){
     confirmed={revision:Number(meta&&meta.revision)||0,updatedAt:meta&&meta.updatedAt||'',checksum:meta&&meta.checksum||dataHash(data),stateHash:meta&&meta.stateHash||'',data:cleanData(data)};
     writeJSON(CONFIRMED_KEY,confirmed);
@@ -190,13 +191,13 @@
     if(!snapshot||!snapshot.drawerId)return;
     var root=$(snapshot.drawerId);if(!root)return;root.classList.add('open');
     (snapshot.fields||[]).forEach(function(field){var element=field.id?$(field.id):null;if(!element&&field.name)element=root.querySelector('[name="'+String(field.name).replace(/"/g,'\\"')+'"]');if(!element)return;if(field.type==='checkbox'||field.type==='radio')element.checked=!!field.checked;else element.value=field.value});
-    Array.prototype.forEach.call(root.querySelectorAll('button[data-hp-v58-disabled="1"]'),function(button){button.disabled=false;button.removeAttribute('data-hp-v58-disabled')});
+    Array.prototype.forEach.call(root.querySelectorAll('button[data-hp-confirmed-disabled="1"]'),function(button){button.disabled=false;button.removeAttribute('data-hp-confirmed-disabled')});
   }
   function holdForm(snapshot){
     if(!snapshot||!snapshot.drawerId)return;
     deferredDrawers[snapshot.drawerId]=snapshot;
     var root=$(snapshot.drawerId);if(!root)return;
-    Array.prototype.forEach.call(root.querySelectorAll('button[onclick*="save" i],button[onclick*="Save" i]'),function(button){button.disabled=true;button.setAttribute('data-hp-v58-disabled','1')});
+    Array.prototype.forEach.call(root.querySelectorAll('button[onclick*="save" i],button[onclick*="Save" i]'),function(button){button.disabled=true;button.setAttribute('data-hp-confirmed-disabled','1')});
     setTimeout(function(){restoreForm(snapshot)},0);
   }
   function releaseForm(snapshot,success){
@@ -206,9 +207,9 @@
     delete deferredDrawers[snapshot.drawerId];
   }
   function installCloseGuard(){
-    if(typeof originalCloseDrawer!=='function'||window.closeDrawer&&window.closeDrawer.__hpV58Guard)return;
+    if(typeof originalCloseDrawer!=='function'||window.closeDrawer&&window.closeDrawer.__hpConfirmedGuard)return;
     var guarded=function(id){if(deferredDrawers[id]&&pendingData()){restoreForm(deferredDrawers[id]);return false}return originalCloseDrawer.apply(this,arguments)};
-    guarded.__hpV58Guard=true;window.closeDrawer=guarded;try{closeDrawer=guarded}catch(error){}
+    guarded.__hpConfirmedGuard=true;window.closeDrawer=guarded;try{closeDrawer=guarded}catch(error){}
   }
 
   function localWrite(db){
@@ -250,7 +251,7 @@
 
   function jsonp(action,params,timeoutMs){
     return new Promise(function(resolve,reject){
-      var url=backendUrl(),callback='hpV58_'+Date.now()+'_'+Math.floor(Math.random()*1000000),query='action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(callback)+'&_='+Date.now(),script=document.createElement('script'),done=false,timer;
+      var url=backendUrl(),callback='hpConfirmed_'+Date.now()+'_'+Math.floor(Math.random()*1000000),query='action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(callback)+'&_='+Date.now(),script=document.createElement('script'),done=false,timer;
       params=params||{};Object.keys(params).forEach(function(key){query+='&'+encodeURIComponent(key)+'='+encodeURIComponent(params[key])});
       function cleanup(){try{delete window[callback]}catch(error){window[callback]=undefined}if(script.parentNode)script.parentNode.removeChild(script);clearTimeout(timer)}
       window[callback]=function(result){done=true;cleanup();resolve(result)};
@@ -262,7 +263,7 @@
   function postForm(action,fields){
     return new Promise(function(resolve,reject){
       try{
-        var url=backendUrl(),name='hp_v58_post_'+Date.now(),iframe=document.createElement('iframe'),form=document.createElement('form');
+        var url=backendUrl(),name='hp_confirmed_post_'+Date.now(),iframe=document.createElement('iframe'),form=document.createElement('form');
         iframe.name=name;iframe.style.display='none';form.method='POST';form.action=url;form.target=name;form.style.display='none';form.acceptCharset='UTF-8';
         fields=fields||{};fields.action=action;fields.appVersion=VERSION;fields.siteVersion=SITE_VERSION;
         Object.keys(fields).forEach(function(key){var input=document.createElement('textarea');input.name=key;input.value=String(fields[key]==null?'':fields[key]);form.appendChild(input)});
@@ -273,7 +274,7 @@
   }
   function responseError(result){
     if(result&&result.category)return categoryError(result.category,result.message||'رفض Google عملية الحفظ',result.details);
-    if(result&&result.message&&/Unknown action/i.test(result.message))return categoryError('VERSION_REJECTED','ملف Code.gs المنشور لا يدعم V58. استبدله بالملف الجديد ثم اعمل Deploy جديد.');
+    if(result&&result.message&&/Unknown action/i.test(result.message))return categoryError('VERSION_REJECTED','ملف Code.gs المنشور لا يدعم الحفظ المؤكد. استبدله بالملف النهائي ثم اعمل Deploy جديد.');
     return categoryError('SERVER_INTERNAL_ERROR',result&&result.message||'تعذر تأكيد عملية الحفظ');
   }
   async function pollMutation(id){
@@ -377,7 +378,7 @@
     if(queue.queue.length)return pushPending(false);
     var result=await getRemoteState(),remote=cleanData(result.data||{}),localChanged=state.ackHash&&dataHash(local)!==state.ackHash;
     if(localChanged||(!state.ackHash&&hasUsefulData(local)&&usefulCount(local)>usefulCount(remote))){
-      saveEmergencyLocalBackup('local-difference-before-v58',local);writeConfirmed(remote,result);
+      saveEmergencyLocalBackup('local-difference-before-upgrade',local);writeConfirmed(remote,result);
       var patch=buildRecoveryPatch(remote,local);
       if(!patchEmpty(patch)){var recovery=emptyQueue();recovery.localSnapshot=local;recovery.localUpdatedAt=now();recovery.queue.push({mutationId:mutationId(),operation:inferOperation('recoverLocalChange',patch),entityType:entityTypeForPatch(patch),createdAt:now(),baseRevision:n(result.revision),patch:patch,reason:'recover-local-change',attempts:0,lastAttemptAt:'',form:null,blocked:false});saveQueue(recovery);return pushPending(false)}
     }
@@ -405,7 +406,7 @@
 
   function ensureSyncPanel(){
     var drawer=document.querySelector('#dr-sync .drawer');if(!drawer)return;var old=$('hp-stage4-sync-panel');if(old)old.remove();if($('hp-v37-sync-panel'))return;
-    var div=document.createElement('div');div.id='hp-v37-sync-panel';div.className='alert blue';div.innerHTML='<div style="font-weight:900;margin-bottom:8px">الحفظ المؤكد على Google — V58</div><div>لن تظهر رسالة نجاح إلا بعد تأكيد Google. إعادة المحاولة تستخدم نفس رقم العملية ولا تنشئ تكرارًا.</div><div id="hp-v37-pending-line" style="font-weight:900;margin-top:8px">حركات في انتظار التأكيد: '+pendingCount()+'</div><div class="btn-row" style="margin-top:10px"><button class="btn green" onclick="refreshCloudData(true)"><i class="ti ti-refresh"></i> تحديث آمن من Google</button><button class="btn blue" onclick="manualSync()"><i class="ti ti-cloud-up"></i> تأكيد الحفظ الآن</button></div>';
+    var div=document.createElement('div');div.id='hp-v37-sync-panel';div.className='alert blue';div.innerHTML='<div style="font-weight:900;margin-bottom:8px">الحفظ المؤكد على Google</div><div>لن تظهر رسالة نجاح إلا بعد تأكيد Google. إعادة المحاولة تستخدم نفس رقم العملية ولا تنشئ تكرارًا.</div><div id="hp-v37-pending-line" style="font-weight:900;margin-top:8px">حركات في انتظار التأكيد: '+pendingCount()+'</div><div class="btn-row" style="margin-top:10px"><button class="btn green" onclick="refreshCloudData(true)"><i class="ti ti-refresh"></i> تحديث آمن من Google</button><button class="btn blue" onclick="manualSync()"><i class="ti ti-cloud-up"></i> تأكيد الحفظ الآن</button></div>';
     var grid=drawer.querySelector('.cloud-status-grid');drawer.insertBefore(div,grid||drawer.children[2]||null);updateUI();
   }
   function triggerImport(){var input=$('cloud-import-input');if(input){input.value='';input.click()}}
@@ -433,7 +434,7 @@
   window.scheduleSync=function(){markPending('scheduled');schedulePush(250);return true};
   window.save=save=function(skipSync){var ok=localWrite(DB);if(ok&&!suppress&&!skipSync){markPending('business-save');setSync(navigator.onLine?'work':'err',navigator.onLine?'جاري الحفظ على Google...':'لا يوجد إنترنت — البيانات محفوظة على الجهاز في انتظار Google')}return ok};
   window.HP_V37_SYNC={version:VERSION,backendUrl:backendUrl,push:pushPending,pull:pull,checkMeta:checkMeta,markPending:markPending,dataHash:dataHash,pendingCount:pendingCount,state:function(){return clone(state)}};
-  window.HP_V58_SYNC=window.HP_V37_SYNC;
+  window.HP_CONFIRMED_SYNC=window.HP_V37_SYNC;
   window.addEventListener('online',function(){setSync('work','عاد الإنترنت — جاري تأكيد العمليات المعلقة');pushPending(false)});
   window.addEventListener('focus',function(){if(pendingData())pushPending(false);else checkMeta(false)});
   window.addEventListener('beforeunload',function(event){if(pendingData()||saving){event.preventDefault();event.returnValue='يوجد تعديل لم يؤكده Google بعد. انتظر حتى تظهر رسالة تم الحفظ على Google.';return event.returnValue}});

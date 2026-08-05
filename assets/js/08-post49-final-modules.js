@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-mobile-back-lite-fix';
-  var SITE_VERSION='58_0_0_stable';
+  var SITE_VERSION='production_20260805_fix1';
   var booted=false, stack=[];
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
   function isMobile(){try{return window.matchMedia('(max-width: 760px)').matches}catch(e){return window.innerWidth<=760}}
@@ -78,8 +78,8 @@
 /* Haydar Pack V52 Reports Pro - V54.2 event-safe buttons */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var ROOT_ID='hp-v52-reports-pro';
 
   function byId(id){return document.getElementById(id)}
@@ -329,7 +329,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-finance-lite-fix';
-  var SITE_VERSION='58_0_0_stable';
+  var SITE_VERSION='production_20260805_fix1';
   var ROOT_ID='hp-v53-finance-insights';
   var MODAL_ID='hp-v53-drilldown-modal';
   var lastError='';
@@ -420,13 +420,13 @@
    Final frontend tester: verifies post-V49 modules through V54, forces reports order, injects Apps Script /exec editor in sync screen. */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var REPORT_AUDIT_ID='hp-v533-post49-audit-strip';
   var BACKEND_PANEL_ID='hp-v533-backend-panel';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
   var OLD_URL_KEY='hayder_pack_backend_url_v10';
-  var DEFAULT_URL=(typeof window.HP_APPS_SCRIPT_URL==='string'&&window.HP_APPS_SCRIPT_URL)||'https://script.google.com/macros/s/AKfycbw0RxMaw2gNicQjSD5T3LHhd-6d2DnABYKGNNMDD1NN3b09wJL3OatLviAn7xqDu2Zq6w/exec';
+  var DEFAULT_URL=(typeof window.HP_APPS_SCRIPT_URL==='string'&&window.HP_APPS_SCRIPT_URL)||'https://script.google.com/macros/s/AKfycbyz3ChhXQ2xMZdD2UHmAsLitbgIvKcSGiQYX7zBNNrJb6h9lem5sLlOBgpkPCOyrWZd2A/exec';
   var MODULES=[
     {key:'save',label:'V49.1 حماية الحفظ',global:'HP_V501_SAVE_GUARD',alt:'HP_V49_1_SAVE_GUARD'},
     {key:'backup',label:'V50 Backup Pro',global:'HP_V50_BACKUP_PRO'},
@@ -500,8 +500,8 @@
    Built on V53.3 without touching sync/backend logic. */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var ROOT_ID='hp-v54-1-repair';
   var PREVIEW_MODAL_ID='hp-v54-doc-preview';
   var STATUS={draft:'Draft',sent:'Sent',paid:'Paid',cancelled:'Cancelled'};
@@ -638,8 +638,8 @@
    post-V49 file to avoid increasing JavaScript file count. */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var CARD_ID='hp-v55-quality-gate';
   var STYLE_ID='hp-v55-quality-style';
   function $(id){return document.getElementById(id)}
@@ -733,8 +733,8 @@
    House expenses affect liquidity and monthly net after house expenses, not the base order profit. */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var PAGE='capital';
   var PAGE_ID='pg-capital';
   var NAV_ID='hp-v56-nav';
@@ -911,7 +911,7 @@
 /* ===== V57.8 Print Reliability + Smart Summary (no new JS files) ===== */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable', SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1', SITE_VERSION='production_20260805_fix1';
   function q(s,root){return (root||document).querySelector(s)}
   function qa(s,root){return Array.prototype.slice.call((root||document).querySelectorAll(s))}
   function byId(id){return document.getElementById(id)}

@@ -17,7 +17,7 @@
 */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
+  var VERSION='2026.08.05-production-fix.1';
   var state={filter:'all',sort:'activity'};
 
   function $(id){return document.getElementById(id)}
@@ -210,8 +210,8 @@
    Loaded last on purpose. It wraps final write functions only, without changing calculations or data model. */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
@@ -284,7 +284,7 @@
   function panelHTML(){
     var p=readPending(), m=readMeta(), c=counts(currentDB()), cls=statusClass();
     var boxCls=cls==='ok'?'hp-v491-ok':cls==='work'?'hp-v491-work':'hp-v491-wait';
-    return '<div id="hp-v491-save-guard"><div class="hp-v491-head">حماية الحفظ V58</div><div class="hp-v491-grid">'
+    return '<div id="hp-v491-save-guard"><div class="hp-v491-head">حماية الحفظ</div><div class="hp-v491-grid">'
       +'<div class="hp-v491-box '+boxCls+'"><b>حالة آخر تعديل</b><span id="hp-v491-status">'+esc(pendingText())+'</span></div>'
       +'<div class="hp-v491-box"><b>آخر حفظ محلي</b><span id="hp-v491-local">'+esc(fmtTime((p&&p.localUpdatedAt)||m.lastLocalSaveAt))+'</span></div>'
       +'<div class="hp-v491-box"><b>آخر تأكيد Google</b><span id="hp-v491-cloud">'+esc(fmtTime(m.lastCloudSaveAt||m.updatedAt))+'</span></div>'
@@ -313,8 +313,8 @@
 /* ===== V50 Backup Center Pro + Mobile Back Guard ===== */
 (function(){
   'use strict';
-  var VERSION='58.0.0-stable';
-  var SITE_VERSION='58_0_0_stable';
+  var VERSION='2026.08.05-production-fix.1';
+  var SITE_VERSION='production_20260805_fix1';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}
@@ -346,7 +346,7 @@
     var cur=status.current||{}, prev=status.previous||{}, latest=status.latestUsefulBackup||{}, backups=status.backups||[], cc=currentCounts(), meta=currentMeta();
     var risk=((cc.clients+cc.orders+cc.payments)===0)?'تحذير: الداتا المحلية قليلة جدًا — راجع قبل الحفظ أو الاسترجاع':'الداتا المحلية بها محتوى';
     var html='<div id="hp-v50-pro-card" class="hp-v50-pro">'
-      +'<div class="hp-v50-head">🛡️ Backup Center Pro V58</div>'
+      +'<div class="hp-v50-head">🛡️ مركز النسخ الاحتياطي</div>'
       +'<div class="hp-v50-grid">'
       +'<div class="hp-v50-box hp-v50-ok"><b>الداتا الحالية على الجهاز</b>'+esc(fmtCounts(cc))+'</div>'
       +'<div class="hp-v50-box"><b>آخر تأكيد Google</b>'+esc(fmtTime(meta.lastCloudSaveAt||meta.updatedAt||cur.updatedAt))+'<br>Rev '+esc(meta.revision||cur.revision||'—')+'</div>'

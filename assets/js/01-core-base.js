@@ -262,7 +262,7 @@ var showArchive=false;
 var currentDesignImage=null;
 try{ if(DB) DB.version=6; }catch(e){}
 function hpRuntimeErrorText(err,fallback){ var msg=''; try{msg=(err&&err.message)||String(err||'')}catch(_){} msg=String(msg||fallback||'خطأ غير معروف').replace(/\s+/g,' ').slice(0,220); return msg; }
-window.addEventListener('error',function(e){ try{ var err=e.error||e.message; console.error(err); showSafeError('خطأ في البرنامج: '+hpRuntimeErrorText(err,e.message)); }catch(_){ } });
+window.addEventListener('error',function(e){ try{ if(e&&e.target&&e.target!==window&&!e.error){console.warn('تعذر تحميل مورد خارجي',e.target.src||e.target.href||'');return} var err=e.error||e.message; console.error(err); showSafeError('خطأ في البرنامج: '+hpRuntimeErrorText(err,e.message)); }catch(_){ } });
 window.addEventListener('unhandledrejection',function(e){ try{ console.error(e.reason); showSafeError('خطأ غير متوقع: '+hpRuntimeErrorText(e.reason,'تعذر إكمال العملية')); }catch(_){ } });
 function showSafeError(msg){ var r=document.getElementById('panic-root'); if(!r) return; r.innerHTML='<div class="panic-box">'+safe(msg||'حدث خطأ وتم احتواؤه')+'</div>'; setTimeout(function(){ if(r) r.innerHTML=''; },5000); }
 function daysSince(v){ var d=dateOf(v); if(!d) return 0; return Math.floor((new Date()-d)/(1000*60*60*24)); }
@@ -1226,7 +1226,7 @@ function openOrderDetail(id){
 // ================= V8 DATA SAFETY + LOCAL GOOGLE DRIVE FOLDER BACKUP =================
 (function(){
   'use strict';
-  var HP_APP_VERSION='58.0.0-stable';
+  var HP_APP_VERSION='2026.08.05-production-fix.1';
   var HP_SCHEMA_VERSION=10;
   var HP_LOCAL_KEY='hayder_bags_app';
   var HP_CURRENT_FILE='HayderPack_Current_Data.json';
@@ -1488,7 +1488,7 @@ window.HP_V37_LEGACY_BOOT_DISABLED=true;
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js?v=58_0_0_stable',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
+    navigator.serviceWorker.register('./sw.js?v=production_20260805_fix1',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
   });
 }
 
