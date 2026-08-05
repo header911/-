@@ -70,6 +70,9 @@
     if (!/^STAGING(?:-|$)/i.test(String(response.environment || ''))) {
       throw HP.errors.create('VERSION_REJECTED', 'رابط RC يجب أن يشير إلى بيئة STAGING مستقلة، وليس إلى الإنتاج أو V57.', {configuration: true, receivedEnvironment: String(response.environment || '')});
     }
+    if (response.migrationRequired) {
+      throw HP.errors.create('STATE_VALIDATION_FAILED', 'Apps Script يعمل لكن قاعدة STAGING لم تُجهز. افتح Apps Script وشغّل installV58Staging مرة واحدة، ثم ارجع واضغط فحص الرابط.', {configuration: true, migrationRequired: true});
+    }
     return response;
   }
 

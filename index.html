@@ -6,17 +6,17 @@
   <meta name="theme-color" content="#10233f">
   <meta name="description" content="Haydar Pack V58 business management">
   <title>Haydar Pack • V58-RC</title>
-  <link rel="icon" href="hp-logo-v3-192.png?v=58rc2setup1">
-  <link rel="apple-touch-icon" href="hp-logo-v3-192.png?v=58rc2setup1">
-  <link rel="manifest" href="manifest.webmanifest?v=58rc2setup1">
-  <link rel="stylesheet" href="assets/css/styles.css?v=58rc2setup1">
-  <script src="config.js?v=58rc2setup1"></script>
+  <link rel="icon" href="hp-logo-v3-192.png?v=58rc3installer1">
+  <link rel="apple-touch-icon" href="hp-logo-v3-192.png?v=58rc3installer1">
+  <link rel="manifest" href="manifest.webmanifest?v=58rc3installer1">
+  <link rel="stylesheet" href="assets/css/styles.css?v=58rc3installer1">
+  <script src="config.js?v=58rc3installer1"></script>
 </head>
 <body>
   <div class="app">
     <header class="topbar">
       <div class="logo-wrap">
-        <img class="hp-app-logo" src="hp-logo-v3-192.png?v=58rc2setup1" alt="Haydar Pack">
+        <img class="hp-app-logo" src="hp-logo-v3-192.png?v=58rc3installer1" alt="Haydar Pack">
         <div><div class="logo-name">Haydar Pack</div><div class="logo-sub">إدارة الأوردرات والعملاء والمصانع</div></div>
       </div>
       <div class="top-actions">
@@ -139,16 +139,16 @@
 
   <div class="overlay" id="dr-sync"><div class="drawer wide"><div class="drawer-handle"></div><div class="drawer-title">حالة النظام والنسخ الاحتياطي</div><div class="alert blue" id="cloud-connection-status">جاري الاتصال</div><div id="legacy-recovery-panel" class="legacy-recovery-panel hide"></div><div class="status-grid"><div><span>نسخة التطبيق</span><b id="status-app-version">—</b></div><div><span>نسخة Backend</span><b id="status-backend-version">—</b></div><div><span>المراجعة المؤكدة</span><b id="status-revision">—</b></div><div><span>آخر حفظ على Google</span><b id="status-last-save">—</b></div><div><span>عمليات معلقة</span><b id="status-pending">0</b></div><div><span>Apps Script</span><b id="status-health">—</b></div><div><span>Service Worker</span><b id="status-sw-version">—</b></div><div class="wide"><span>بصمة الحالة</span><b class="hash" id="status-hash">—</b></div><div class="wide"><span>آخر خطأ</span><b id="status-last-error">لا يوجد</b></div></div><div class="sec-label">النسخ الرسمية على Google</div><div class="field"><label>نسخة للاسترجاع</label><select id="backup-select"></select></div><div class="btn-row"><button class="btn blue" type="button" data-action="backup-create">إنشاء نسخة مؤكدة</button><button class="btn amber" type="button" data-action="backup-restore">استرجاع داخل مراجعة جديدة</button><button class="btn" type="button" data-action="backup-refresh">تحديث الحالة</button></div><div id="backup-result"></div><div class="sec-label">أدوات آمنة</div><div class="btn-row"><button class="btn" type="button" data-action="backup-download-confirmed">تنزيل آخر نسخة مؤكدة</button><button class="btn" type="button" data-action="backup-resolve-pending">فحص العمليات المعلقة</button><button class="btn" type="button" data-action="backup-update-app">تحديث ملفات التطبيق</button><button class="btn" type="button" data-action="backup-safe-reload">إعادة تحميل آمنة</button></div><button class="btn full" type="button" data-action="close" data-drawer="dr-sync">إغلاق</button></div></div>
 
-  <div id="cloud-loading-cover" class="cloud-loading-cover"><div class="loader-card"><img src="hp-logo-v3-192.png?v=58rc2setup1" alt="Haydar Pack"><strong>Haydar Pack V58-RC</strong><code id="cloud-loading-code" class="loader-error-code hide" dir="ltr"></code><p id="cloud-loading-text">جاري التحقق من Google والعمليات المعلقة...</p><div id="backend-setup-panel" class="backend-setup-panel hide"><h3>ربط Backend التجريبي</h3><ol><li>انشر ZIP الخاص بـ Apps Script في مشروع جديد مستقل.</li><li>شغّل إعداد وترحيل STAGING كما في التعليمات.</li><li>الصق رابط Web App الجديد المنتهي بـ <b dir="ltr">/exec</b>.</li></ol><label for="backend-setup-url">رابط Apps Script STAGING</label><input id="backend-setup-url" type="url" dir="ltr" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec"><button class="btn primary full" type="button" data-action="backend-configure">فحص الرابط وربط التطبيق</button><div id="backend-setup-status" class="backend-setup-status" role="status"></div><p class="setup-warning">لن يتم إرسال أي بيانات عمل أثناء الفحص. لن يقبل التطبيق رابط V57 أو رابط إنتاج أو Backend بإصدار مختلف.</p></div></div></div>
+  <div id="cloud-loading-cover" class="cloud-loading-cover"><div class="loader-card"><img src="hp-logo-v3-192.png?v=58rc3installer1" alt="Haydar Pack"><strong>Haydar Pack V58-RC</strong><code id="cloud-loading-code" class="loader-error-code hide" dir="ltr"></code><p id="cloud-loading-text">جاري التحقق من Google والعمليات المعلقة...</p><div id="backend-setup-panel" class="backend-setup-panel hide"><h3>ربط Backend التجريبي</h3><ol><li>الصق <b dir="ltr">Code.gs</b> الجديد داخل مشروع Apps Script التجريبي.</li><li>من قائمة الدوال شغّل <b dir="ltr">installV58Staging</b> مرة واحدة فقط.</li><li>اعمل Deploy لإصدار جديد ثم الصق رابط Web App المنتهي بـ <b dir="ltr">/exec</b>.</li></ol><label for="backend-setup-url">رابط Apps Script STAGING</label><input id="backend-setup-url" type="url" dir="ltr" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec"><button class="btn primary full" type="button" data-action="backend-configure">فحص الرابط وربط التطبيق</button><div id="backend-setup-status" class="backend-setup-status" role="status"></div><p class="setup-warning">لا تشغّل دوال الشعار أو الاحتفاظ أو الترحيل يدويًا. دالة التثبيت الواحدة تنفذ المطلوب بأمان.</p></div></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="assets/js/01-app-core.js?v=58rc2setup1"></script>
-  <script src="assets/js/02-api-client.js?v=58rc2setup1"></script>
-  <script src="assets/js/03-domain-calculations.js?v=58rc2setup1"></script>
-  <script src="assets/js/04-business-actions.js?v=58rc2setup1"></script>
-  <script src="assets/js/05-ui-pages.js?v=58rc2setup1"></script>
-  <script src="assets/js/06-reports-capital.js?v=58rc2setup1"></script>
-  <script src="assets/js/07-documents-pdf.js?v=58rc2setup1"></script>
-  <script src="assets/js/08-backup-recovery.js?v=58rc2setup1"></script>
+  <script src="assets/js/01-app-core.js?v=58rc3installer1"></script>
+  <script src="assets/js/02-api-client.js?v=58rc3installer1"></script>
+  <script src="assets/js/03-domain-calculations.js?v=58rc3installer1"></script>
+  <script src="assets/js/04-business-actions.js?v=58rc3installer1"></script>
+  <script src="assets/js/05-ui-pages.js?v=58rc3installer1"></script>
+  <script src="assets/js/06-reports-capital.js?v=58rc3installer1"></script>
+  <script src="assets/js/07-documents-pdf.js?v=58rc3installer1"></script>
+  <script src="assets/js/08-backup-recovery.js?v=58rc3installer1"></script>
 </body>
 </html>

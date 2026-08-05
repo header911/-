@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '58.0.0-rc.2';
-  var RELEASE_TOKEN = '58rc2setup1';
+  var APP_VERSION = '58.0.0-rc.3';
+  var RELEASE_TOKEN = '58rc3installer1';
   var CACHE_KEY = 'haydar_pack_v58_confirmed_state';
   var PENDING_KEY = 'haydar_pack_v58_pending_mutations';
   var DEVICE_KEY = 'haydar_pack_v58_device_id';
