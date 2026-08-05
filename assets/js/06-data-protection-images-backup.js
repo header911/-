@@ -195,7 +195,7 @@
     saveSafeSnapshot('before-safe-reload');
     try{await cloudPreflight(true)}catch(e){toastSafe((e&&e.message)||'فشل فحص الأمان — سيتم إعادة تحميل الصفحة فقط بدون مسح')}
     var base=location.href.split('?')[0];
-    location.href=base+'?v=production_20260805_fix2&safeReload='+Date.now();
+    location.href=base+'?v=production_20260806_fix3&safeReload='+Date.now();
   };
   function panelHtml(){
     var c=counts(currentDB()), snap=readSafeSnapshot(), sc=snap&&snap.counts;
@@ -342,7 +342,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix2';
+  var SITE_VERSION='production_20260806_fix3';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -498,12 +498,10 @@
     ensureSimplePanel(); setWorking('جاري فحص الحماية والمزامنة...', 'work');
     try{
       await autoSafetySnapshot('v41-sync-now');
-      if(window.HP_V39_GUARD&&typeof window.HP_V39_GUARD.cloudPreflight==='function'){
-        try{await window.HP_V39_GUARD.cloudPreflight(true)}catch(e){console.warn(e)}
-      }
-      if(typeof window.refreshCloudData==='function')await window.refreshCloudData(true);
+      var syncResult=null;
+      if(typeof window.refreshCloudData==='function')syncResult=await window.refreshCloudData(true);
+      if(!syncResult)throw new Error('لم يصل تأكيد من Google. لم يتم اعتبار المزامنة ناجحة وسيعاد الاتصال تلقائيًا.');
       try{if(window.HP_V40_IMAGES&&typeof window.HP_V40_IMAGES.processQueue==='function')window.HP_V40_IMAGES.processQueue()}catch(e){}
-      await loadBackupStatus(false);
       updateSimpleUI(); setWorking('تمت المزامنة والفحص. لا توجد خطوات مطلوبة.', 'ok');
       toastSafe('تمت المزامنة والحماية');
     }catch(e){console.error(e);setWorking((e&&e.message)||'تعذر إتمام المزامنة — لم يتم حذف أي بيانات', 'err');toastSafe((e&&e.message)||'تعذر المزامنة')}
@@ -599,10 +597,9 @@
     if(booted)return;
     booted=true;
     if(!simpleTimer) simpleTimer=setInterval(updateSimpleUI,3000);
-    setTimeout(function(){loadBackupStatus(false).catch(function(){})},2500);
   }
   var oldOpenSync=window.openSync;
-  window.openSync=function(){var r=oldOpenSync?oldOpenSync.apply(this,arguments):undefined;setTimeout(function(){ensureSimplePanel();hideLegacySyncUI();loadBackupStatus(false).catch(function(){})},250);setTimeout(hideLegacySyncUI,800);return r};
+  window.openSync=function(){var r=oldOpenSync?oldOpenSync.apply(this,arguments):undefined;setTimeout(function(){ensureSimplePanel();hideLegacySyncUI()},250);setTimeout(hideLegacySyncUI,800);return r};
   var oldSetSyncState=window.setSyncState;
   if(typeof oldSetSyncState==='function')window.setSyncState=function(){var r=oldSetSyncState.apply(this,arguments);setTimeout(updateSimpleUI,0);return r};
   document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1200)});
@@ -622,7 +619,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix2';
+  var SITE_VERSION='production_20260806_fix3';
   var LOG_KEY='hayder_pack_error_log_v49';
   var MAX_LOGS=80;
   var wrapped=false;
@@ -655,6 +652,8 @@
   function toastSafe(m){try{if(typeof toast==='function')toast(m)}catch(e){}}
   window.hpV50LogError=function(kind,err,ctx,extra){return addLog(kind,err,ctx,extra)};
   window.addEventListener('error',function(e){
+    if(e&&e.target&&e.target!==window&&!e.error)return;
+    if(e&&!e.error&&/^Script error\.?$/i.test(String(e.message||'').trim()))return;
     addLog('window.error', e.error||e.message, 'global', {source:e.filename||'',line:e.lineno||0,col:e.colno||0});
   });
   window.addEventListener('unhandledrejection',function(e){

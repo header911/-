@@ -211,12 +211,26 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix2';
+  var SITE_VERSION='production_20260806_fix3';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
   var GUARD_LOG_KEY='hayder_pack_save_confirm_log_v49_1';
   var inFlight=false, lastReason='', refreshTimer=null;
+
+  // The confirmed mutation engine already owns retries and pending state.
+  // Keep a compatibility facade for diagnostics, but never wrap writes or
+  // start a second retry loop when that engine is active.
+  if(window.HP_MUTATION_SYNC){
+    window.HP_V501_SAVE_GUARD={
+      version:VERSION,siteVersion:SITE_VERSION,passive:true,
+      confirm:function(show){return typeof window.manualSync==='function'?window.manualSync(show!==false):Promise.resolve(false)},
+      update:function(){},
+      pending:function(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'null')}catch(e){return null}},
+      log:function(){return []}
+    };
+    return;
+  }
 
   function $(id){return document.getElementById(id)}
   function now(){return new Date().toISOString()}
@@ -314,7 +328,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix2';
+  var SITE_VERSION='production_20260806_fix3';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}

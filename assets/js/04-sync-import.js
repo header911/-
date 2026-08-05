@@ -3,7 +3,7 @@
   'use strict';
 
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix2';
+  var SITE_VERSION='production_20260806_fix3';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -19,6 +19,7 @@
 
   var state={revision:0,updatedAt:'',ackHash:'',stateHash:'',lastLocalSaveAt:'',lastCloudSaveAt:'',lastError:'',lastErrorCategory:'',lastAttemptAt:'',deviceId:'',backendVersion:'',serviceWorkerVersion:SITE_VERSION};
   var confirmed=null, syncTimer=null, retryTimer=null, metaTimer=null;
+  var readFlights={};
   var saving=false, booted=false, suppress=false, allowConfirmedToast=false;
   var originalToast=window.toast, originalCloseDrawer=window.closeDrawer;
   var deferredDrawers={};
@@ -239,7 +240,7 @@
     var status=$('sync-status');if(status)status.textContent=message||'';
     var cls=name==='ok'?'success':name==='work'?'warn':name==='err'?'danger':'';
     setText('cloud-connection-status',name==='ok'?'متصل ومحفوظ':name==='work'?'جاري تأكيد Google':name==='err'?'الحفظ لم يتأكد بعد':'جاهز',cls);
-    var banner=$('cloud-offline-banner');if(banner&&name==='err'){banner.textContent=message||'لم يتم تأكيد الحفظ على Google';banner.classList.add('show')}
+    var banner=$('cloud-offline-banner');if(banner){if(name==='err'){banner.textContent=message||'لم يتم تأكيد الحفظ على Google';banner.classList.add('show')}else{banner.classList.remove('show');banner.textContent=''}}
   }
   function updateUI(){
     setText('cloud-revision-status',String(state.revision||0));setText('cloud-last-status',fmtTime(state.lastCloudSaveAt||state.updatedAt));
@@ -252,15 +253,21 @@
   function onePage(){try{var pages=[].slice.call(document.querySelectorAll('.page')),active=pages.filter(function(page){return page.classList.contains('active')});if(pages.length&&active.length!==1)pages.forEach(function(page,index){page.classList.toggle('active',index===0)})}catch(error){}}
 
   function jsonp(action,params,timeoutMs){
-    return new Promise(function(resolve,reject){
+    params=params||{};
+    var flightKey=(action==='getState'||action==='getRevision')?action:'';
+    if(flightKey&&readFlights[flightKey])return readFlights[flightKey];
+    var request=new Promise(function(resolve,reject){
       var url=backendUrl(),callback='hpConfirmed_'+Date.now()+'_'+Math.floor(Math.random()*1000000),query='action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(callback)+'&_='+Date.now(),script=document.createElement('script'),done=false,timer;
-      params=params||{};Object.keys(params).forEach(function(key){query+='&'+encodeURIComponent(key)+'='+encodeURIComponent(params[key])});
+      Object.keys(params).forEach(function(key){query+='&'+encodeURIComponent(key)+'='+encodeURIComponent(params[key])});
       function cleanup(){try{delete window[callback]}catch(error){window[callback]=undefined}if(script.parentNode)script.parentNode.removeChild(script);clearTimeout(timer)}
       window[callback]=function(result){done=true;cleanup();resolve(result)};
       script.onerror=function(){if(!done){cleanup();reject(categoryError('BACKEND_UNREACHABLE','تعذر الوصول إلى Google Apps Script'))}};
       timer=setTimeout(function(){if(!done){cleanup();reject(categoryError('NETWORK_TIMEOUT','انتهت مهلة الاتصال أثناء انتظار Google'))}},timeoutMs||30000);
       script.src=url+(url.indexOf('?')>=0?'&':'?')+query;document.head.appendChild(script);
     });
+    if(!flightKey)return request;
+    readFlights[flightKey]=request.then(function(result){delete readFlights[flightKey];return result},function(error){delete readFlights[flightKey];throw error});
+    return readFlights[flightKey];
   }
   function postForm(action,fields){
     return new Promise(function(resolve,reject){

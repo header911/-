@@ -165,7 +165,7 @@
     openDrawer('dr-settings'); renderDeleteLogArea();
   };
   window.hpStage6HardReload=function(){
-    var base=location.href.split('?')[0]; location.href=base+'?v=production_20260805_fix2&safeReload='+Date.now();
+    var base=location.href.split('?')[0]; location.href=base+'?v=production_20260806_fix3&safeReload='+Date.now();
   };
   if(!window.manualSyncNow){
     window.manualSyncNow=function(){

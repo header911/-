@@ -262,7 +262,7 @@ var showArchive=false;
 var currentDesignImage=null;
 try{ if(DB) DB.version=6; }catch(e){}
 function hpRuntimeErrorText(err,fallback){ var msg=''; try{msg=(err&&err.message)||String(err||'')}catch(_){} msg=String(msg||fallback||'خطأ غير معروف').replace(/\s+/g,' ').slice(0,220); return msg; }
-window.addEventListener('error',function(e){ try{ if(e&&e.target&&e.target!==window&&!e.error){console.warn('تعذر تحميل مورد خارجي',e.target.src||e.target.href||'');return} var err=e.error||e.message; console.error(err); showSafeError('خطأ في البرنامج: '+hpRuntimeErrorText(err,e.message)); }catch(_){ } });
+window.addEventListener('error',function(e){ try{ if(e&&e.target&&e.target!==window&&!e.error){console.warn('تعذر تحميل مورد خارجي',e.target.src||e.target.href||'');return} if(e&&!e.error&&/^Script error\.?$/i.test(String(e.message||'').trim())){console.warn('تم تجاهل خطأ خارجي مبهم؛ حالة الاتصال تظهر من محرك Google');return} var err=e.error||e.message; console.error(err); showSafeError('خطأ في البرنامج: '+hpRuntimeErrorText(err,e.message)); }catch(_){ } });
 window.addEventListener('unhandledrejection',function(e){ try{ console.error(e.reason); showSafeError('خطأ غير متوقع: '+hpRuntimeErrorText(e.reason,'تعذر إكمال العملية')); }catch(_){ } });
 function showSafeError(msg){ var r=document.getElementById('panic-root'); if(!r) return; r.innerHTML='<div class="panic-box">'+safe(msg||'حدث خطأ وتم احتواؤه')+'</div>'; setTimeout(function(){ if(r) r.innerHTML=''; },5000); }
 function daysSince(v){ var d=dateOf(v); if(!d) return 0; return Math.floor((new Date()-d)/(1000*60*60*24)); }
@@ -1488,7 +1488,7 @@ window.HP_V37_LEGACY_BOOT_DISABLED=true;
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js?v=production_20260805_fix2',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
+    navigator.serviceWorker.register('./sw.js?v=production_20260806_fix3',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
   });
 }
 
