@@ -1,2 +1,2 @@
-// رابط Google Apps Script /exec الخاص بالمزامنة
-window.HP_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0RxMaw2gNicQjSD5T3LHhd-6d2DnABYKGNNMDD1NN3b09wJL3OatLviAn7xqDu2Zq6w/exec';
+/* V58-RC only: paste the URL of the separate STAGING Apps Script deployment here. */
+window.HP_APPS_SCRIPT_URL = 'PASTE_V58_RC_STAGING_APPS_SCRIPT_EXEC_URL_HERE';
