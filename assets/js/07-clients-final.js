@@ -211,7 +211,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix1';
+  var SITE_VERSION='production_20260805_fix2';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
@@ -314,7 +314,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix1';
+  var SITE_VERSION='production_20260805_fix2';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}

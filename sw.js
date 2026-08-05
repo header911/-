@@ -1,4 +1,4 @@
-const HP_RELEASE = 'production_20260805_fix1';
+const HP_RELEASE = 'production_20260805_fix2';
 const HP_CACHE = 'haydar-pack-pwa-' + HP_RELEASE;
 const HP_INDEX = './index.html?v=' + HP_RELEASE;
 const HP_OFFLINE = './offline.html?v=' + HP_RELEASE;

@@ -3,7 +3,7 @@
   'use strict';
 
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260805_fix1';
+  var SITE_VERSION='production_20260805_fix2';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -22,6 +22,7 @@
   var saving=false, booted=false, suppress=false, allowConfirmedToast=false;
   var originalToast=window.toast, originalCloseDrawer=window.closeDrawer;
   var deferredDrawers={};
+  var EDITABLE_DRAWERS={'dr-order':true,'dr-client':true,'dr-factory':true,'dr-transfer':true,'dr-expense':true,'dr-payment':true,'dr-fprice':true,'dr-capital':true};
 
   window.HP_MUTATION_SYNC=true;
 
@@ -182,7 +183,8 @@
   }
 
   function captureActiveForm(){
-    var root=document.querySelector('.overlay.open[id],.drawer-root.open[id],.modal.open[id]');
+    var roots=document.querySelectorAll('.overlay.open[id],.drawer-root.open[id],.modal.open[id]'),root=null;
+    Array.prototype.some.call(roots,function(candidate){if(EDITABLE_DRAWERS[candidate.id]){root=candidate;return true}return false});
     if(!root||!root.id)return null;
     var fields=[];Array.prototype.forEach.call(root.querySelectorAll('input,select,textarea'),function(element){if(!element.id&&!element.name)return;fields.push({id:element.id||'',name:element.name||'',type:element.type||'',value:element.value,checked:!!element.checked})});
     return {drawerId:root.id,fields:fields,capturedAt:now()};
@@ -208,7 +210,7 @@
   }
   function installCloseGuard(){
     if(typeof originalCloseDrawer!=='function'||window.closeDrawer&&window.closeDrawer.__hpConfirmedGuard)return;
-    var guarded=function(id){if(deferredDrawers[id]&&pendingData()){restoreForm(deferredDrawers[id]);return false}return originalCloseDrawer.apply(this,arguments)};
+    var guarded=function(id){if(EDITABLE_DRAWERS[id]&&deferredDrawers[id]&&pendingData()){restoreForm(deferredDrawers[id]);return false}return originalCloseDrawer.apply(this,arguments)};
     guarded.__hpConfirmedGuard=true;window.closeDrawer=guarded;try{closeDrawer=guarded}catch(error){}
   }
 
