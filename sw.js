@@ -1,21 +1,21 @@
-const HP_CACHE = 'haydar-pack-pwa-v57-8-liquidity-simple';
+const HP_CACHE = 'haydar-pack-pwa-v57-5-print-final';
 const HP_ASSETS = [
   './',
-  './index.html?v=57_8liquiditysimple',
-  './config.js?v=57_8liquiditysimple',
-  './manifest.webmanifest?v=57_8liquiditysimple',
+  './index.html?v=57_5printfinal',
+  './config.js?v=57_5printfinal',
+  './manifest.webmanifest?v=57_5printfinal',
   './offline.html',
-  './assets/css/styles.css?v=57_8liquiditysimple',
-  './hp-logo-v3-192.png?v=57_8liquiditysimple',
-  './hp-logo-v3-512.png?v=57_8liquiditysimple',
-  './assets/js/01-core-base.js?v=57_8liquiditysimple',
-  './assets/js/02-business-legacy.js?v=57_8liquiditysimple',
-  './assets/js/03-boot-calc-print.js?v=57_8liquiditysimple',
-  './assets/js/04-sync-import.js?v=57_8liquiditysimple',
-  './assets/js/05-feature-patches.js?v=57_8liquiditysimple',
-  './assets/js/06-data-protection-images-backup.js?v=57_8liquiditysimple',
-  './assets/js/07-clients-final.js?v=57_8liquiditysimple',
-  './assets/js/08-post49-final-modules.js?v=57_8liquiditysimple'
+  './assets/css/styles.css?v=57_5printfinal',
+  './hp-logo-v3-192.png?v=57_5printfinal',
+  './hp-logo-v3-512.png?v=57_5printfinal',
+  './assets/js/01-core-base.js?v=57_5printfinal',
+  './assets/js/02-business-legacy.js?v=57_5printfinal',
+  './assets/js/03-boot-calc-print.js?v=57_5printfinal',
+  './assets/js/04-sync-import.js?v=57_5printfinal',
+  './assets/js/05-feature-patches.js?v=57_5printfinal',
+  './assets/js/06-data-protection-images-backup.js?v=57_5printfinal',
+  './assets/js/07-clients-final.js?v=57_5printfinal',
+  './assets/js/08-post49-final-modules.js?v=57_5printfinal'
 ];
 
 self.addEventListener('install', event => {
@@ -51,7 +51,7 @@ self.addEventListener('fetch', event => {
           return response;
         })
         .catch(() => caches.match(event.request)
-          .then(cached => cached || caches.match('./index.html?v=57_8liquiditysimple'))
+          .then(cached => cached || caches.match('./index.html?v=57_5printfinal'))
           .then(cached => cached || caches.match('./offline.html')))
     );
     return;

@@ -1,22 +1,4 @@
-# Haydar Pack V57.8 — Print Reliability
-
-## Simple Liquidity update
-
-- تبسيط صفحة السيولة لتعرض: السيولة المتاحة، المطلوب من العملاء، والمطلوب للمصانع.
-- إضافة ملخص حركة الفلوس وتوصيات «ماذا أفعل اليوم؟».
-- نقل المعلومات المفيدة من Reports Pro V52 وV53 إلى السيولة بدون تكرار واجهاتهما.
-- إبقاء التفاصيل في أقسام اختيارية لتظل الصفحة سهلة وواضحة.
-- الحفاظ على نفس عدد القوائم: 6.
-- إزالة شريط الفحص التقني وأقسام V52/V53 المكررة من صفحة التقارير.
-- تحديث رمز الكاش إلى `57_8liquiditysimple`.
-- عدم تعديل محرك الطباعة المستقر في V57.8.
-
-## V57.8 Chrome orientation correction
-
-- Removed the V57.7 fixed `281mm` document width that caused clipping when Chrome retained a portrait layout viewport.
-- Replaced numeric page dimensions with the standard `A4 landscape` page descriptor so Chrome applies landscape to both the paper and the layout viewport.
-- The sheet now fills the active printable area responsively without extending beyond it.
-- Added a new cache and asset token so no V57.7 print rules can remain active.
+# Haydar Pack V57.5 — Print Reliability
 
 نسخة إصلاح آمنة مبنية على V57.4 بدون تغيير التصميم أو نموذج البيانات أو رابط Apps Script.
 
@@ -32,6 +14,6 @@
 - إصلاح قص بطاقات الأرقام الكبيرة على شاشات الموبايل.
 - تقليل فحص Google أثناء الخمول من كل 20 ثانية إلى كل 60 ثانية، وإيقافه عند إخفاء الصفحة أو انقطاع الاتصال.
 - منع Service Worker من اعتراض أو تخزين طلبات Apps Script الخارجية.
-- تقليل عناصر كاش PWA المكررة وتحديث رمز النسخة إلى `57_8landscapeprint`.
+- تقليل عناصر كاش PWA المكررة وتحديث رمز النسخة إلى `57_5printfinal`.
 
 لا توجد أي خطوة ترحيل للبيانات. مفاتيح التخزين، بنية DB، أسماء الدوال العامة، ورابط Apps Script ما زالت متوافقة.
