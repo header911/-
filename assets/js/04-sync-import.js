@@ -1,483 +1,444 @@
-/* Haydar Pack V50 final-stable bundle: 04-sync-import.js
-   Sources: 12-sync-import.js
-   Based on V44.1 Sync Fix; production cleanup without business-logic changes. */
-
-
-
-/* ===== BEGIN SOURCE: 12-sync-import.js ===== */
-
-/* Haydar Pack V37 — Auto Local-First Sync Safety
-   Scope: sync only. No UI features, calculations, documents, or data model changes.
-   Guarantees:
-   - Every change is saved locally first.
-   - Sync runs automatically in the background; manual button is optional only.
-   - Google data never overwrites a newer local pending change.
-   - Failed sync retries automatically with backoff until it succeeds.
-*/
+/* Haydar Pack V58 — confirmed Google mutations without UI redesign. */
 (function(){
   'use strict';
 
-  var VERSION='57.5.0-print-reliability';
+  var VERSION='58.0.0-stable';
+  var SITE_VERSION='58_0_0_stable';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
+  var CONFIRMED_KEY='hayder_pack_confirmed_state_v58';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
   var OLD_URL_KEY='hayder_pack_backend_url_v10';
+  var DEVICE_KEY='hayder_pack_device_id_v37';
+  var EMERGENCY_KEY='hayder_pack_emergency_local_backup_v58';
   var LEGACY_PENDING_KEYS=['hayder_pack_stage4_pending_v32','hayder_pack_pwa_pending_v10','hayder_pack_unsynced_v9'];
-  var LEGACY_META_KEYS=['hayder_pack_stage4_meta_v32','hayder_pack_pwa_meta_v10','hayder_pack_cloud_meta_v9'];
   var FIXED_URL='https://script.google.com/macros/s/AKfycbw0RxMaw2gNicQjSD5T3LHhd-6d2DnABYKGNNMDD1NN3b09wJL3OatLviAn7xqDu2Zq6w/exec';
+  var RETRY_DELAYS=[4000,8000,15000,30000,60000,120000];
 
-  var state={revision:0,updatedAt:'',ackHash:'',lastLocalSaveAt:'',lastCloudSaveAt:'',lastError:'',lastAttemptAt:'',deviceId:''};
-  var syncTimer=null, retryTimer=null, metaTimer=null;
-  var saving=false, booted=false, suppress=false;
+  var state={revision:0,updatedAt:'',ackHash:'',stateHash:'',lastLocalSaveAt:'',lastCloudSaveAt:'',lastError:'',lastErrorCategory:'',lastAttemptAt:'',deviceId:'',backendVersion:'',serviceWorkerVersion:SITE_VERSION};
+  var confirmed=null, syncTimer=null, retryTimer=null, metaTimer=null;
+  var saving=false, booted=false, suppress=false, allowConfirmedToast=false;
+  var originalToast=window.toast, originalCloseDrawer=window.closeDrawer;
+  var deferredDrawers={};
+
+  window.HP_MUTATION_SYNC=true;
 
   function $(id){return document.getElementById(id)}
   function now(){return new Date().toISOString()}
-  function clone(v){return JSON.parse(JSON.stringify(v||{}))}
-  function toastSafe(msg){try{if(typeof toast==='function')toast(msg);else console.log(msg)}catch(e){}}
-  function num(v){var n=parseFloat(v);return isNaN(n)?0:n}
-  function normArr(db,k){if(!Array.isArray(db[k]))db[k]=[]}
+  function wait(ms){return new Promise(function(resolve){setTimeout(resolve,ms)})}
+  function clone(value){if(value===undefined)return null;return JSON.parse(JSON.stringify(value))}
+  function n(value){var number=Number(value);return isFinite(number)?number:0}
+  function arrays(db,key){if(!Array.isArray(db[key]))db[key]=[]}
   function cleanData(input){
     var db=clone(input||{});
-    ['clients','factories','orders','payments','transfers','expenses','capitalMoves','deletedItems','deletedLog','deletedArchive'].forEach(function(k){normArr(db,k)});
+    ['clients','factories','orders','payments','transfers','expenses','capitalMoves','documents','houseExpenses','walletAdjustments','deletedItems','deletedLog','deletedArchive'].forEach(function(key){arrays(db,key)});
     if(!db.settings||typeof db.settings!=='object'||Array.isArray(db.settings))db.settings={};
     if(!Array.isArray(db.settings.extraMonths))db.settings.extraMonths=[];
     delete db.settings.dataSafety;
     delete db.settings.googleClientId;
     db.settings.autoSync=false;
-    db._id=num(db._id)||1;
-    db.version=Math.max(num(db.version)||0,11);
+    db._id=n(db._id)||1;
+    db.version=Math.max(n(db.version)||0,11);
     return db;
   }
-  function counts(db){db=db||{};return {
-    clients:(db.clients||[]).length,
-    factories:(db.factories||[]).length,
-    orders:(db.orders||[]).length,
-    payments:(db.payments||[]).length,
-    transfers:(db.transfers||[]).length,
-    expenses:(db.expenses||[]).length,
-    capitalMoves:(db.capitalMoves||[]).length,
-    deleted:((db.deletedItems||[]).length+(db.deletedLog||[]).length+(db.deletedArchive||[]).length)
-  }}
-  function hasUsefulData(db){var c=counts(db||{});return c.clients+c.orders+c.payments+c.transfers+c.expenses+c.capitalMoves+c.deleted>0}
-  function usefulCount(db){var c=counts(db||{});return c.clients+c.factories+c.orders+c.payments+c.transfers+c.expenses+c.capitalMoves+c.deleted}
-  function isDangerousRemote(incoming,base){
-    var i=counts(incoming||{}), b=counts(base||{});
-    var iCrit=i.clients+i.orders+i.payments+i.transfers+i.expenses+i.capitalMoves+i.deleted;
-    var bCrit=b.clients+b.orders+b.payments+b.transfers+b.expenses+b.capitalMoves+b.deleted;
-    if(bCrit>=5 && iCrit===0)return true;
-    if(bCrit>=10 && iCrit<Math.floor(bCrit*0.35))return true;
-    if(b.clients>=5 && i.clients===0)return true;
-    if(b.clients>=10 && i.clients<Math.floor(b.clients*0.5))return true;
-    if(b.payments>=5 && i.payments===0)return true;
-    if(b.orders>=3 && i.orders===0)return true;
-    return false;
+  function canonical(value){
+    if(Array.isArray(value))return value.map(canonical);
+    if(value&&typeof value==='object'){
+      var out={};Object.keys(value).sort().forEach(function(key){out[key]=canonical(value[key])});return out;
+    }
+    return value;
   }
-  function saveEmergencyLocalBackup(reason){
-    try{
-      if(!hasUsefulData(DB))return;
-      var item={reason:reason||'backup',createdAt:now(),counts:counts(DB),data:cleanData(DB)};
-      localStorage.setItem('hayder_pack_emergency_local_backup_v38',JSON.stringify(item));
-      localStorage.setItem('hayder_pack_emergency_local_backup_v38_'+Date.now(),JSON.stringify(item));
-    }catch(e){console.warn('emergency backup skipped',e)}
-  }
-  function getEmergencyLocalBackup(){try{return JSON.parse(localStorage.getItem('hayder_pack_emergency_local_backup_v38')||'null')}catch(e){return null}}
-
+  function stableText(value){return JSON.stringify(canonical(value))}
+  function same(a,b){return stableText(a)===stableText(b)}
   function hashText(text){var h=2166136261;for(var i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}return ('00000000'+(h>>>0).toString(16)).slice(-8)}
-  function dataHash(db){return hashText(JSON.stringify(cleanData(db)))}
-  function fmtTime(v){if(!v)return 'لا توجد بعد';try{return new Date(v).toLocaleString('ar-EG')}catch(e){return String(v)}}
+  function dataHash(db){return hashText(JSON.stringify(cleanData(db||{})))}
+  function counts(db){db=db||{};return {clients:(db.clients||[]).length,factories:(db.factories||[]).length,orders:(db.orders||[]).length,payments:(db.payments||[]).length,transfers:(db.transfers||[]).length,expenses:(db.expenses||[]).length,capitalMoves:(db.capitalMoves||[]).length,documents:(db.documents||[]).length,deleted:((db.deletedItems||[]).length+(db.deletedLog||[]).length+(db.deletedArchive||[]).length)}}
+  function usefulCount(db){var c=counts(db||{});return c.clients+c.factories+c.orders+c.payments+c.transfers+c.expenses+c.capitalMoves+c.documents+c.deleted}
+  function hasUsefulData(db){return usefulCount(db)>0}
+  function readJSON(key,fallback){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(error){return fallback}}
+  function writeJSON(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch(error){console.error(error);return false}}
+  function fmtTime(value){if(!value)return 'لا توجد بعد';try{return new Date(value).toLocaleString('ar-EG')}catch(error){return String(value)}}
+  function toastDirect(message){try{if(typeof originalToast==='function')originalToast(message);else console.log(message)}catch(error){console.log(message)}}
+  function toastSafe(message){allowConfirmedToast=true;try{toastDirect(message)}finally{allowConfirmedToast=false}}
+  function categoryError(category,message,details){var error=new Error(message||'تعذر تنفيذ الطلب');error.category=category||'SERVER_INTERNAL_ERROR';error.details=details||null;return error}
+  function errorMessage(error){return String(error&&error.message||error||'تعذر تنفيذ الطلب')}
+
+  function installToastGuard(){
+    if(typeof originalToast!=='function'||window.toast&&window.toast.__hpV58Guard)return;
+    var guarded=function(message){
+      var text=String(message||'');
+      if(!allowConfirmedToast&&pendingData()&&/^تم (حفظ|إضافة|تعديل|تسجيل|تحديث|نقل|حذف|إنشاء)/.test(text)){
+        return originalToast('جاري الحفظ على Google...');
+      }
+      return originalToast(message);
+    };
+    guarded.__hpV58Guard=true;
+    window.toast=guarded;
+    try{toast=guarded}catch(error){}
+  }
+
   function normalizeUrl(url){
-    url=String(url||'').trim().replace(/\s+/g,'');
-    if(!url)return '';
-    url=url.replace(/[?#].*$/,'').replace(/\/+$/,'');
-    var m=url.match(/^(https:\/\/script\.google\.com\/macros\/s\/[^\/]+)(?:\/(exec|dev))?$/);
-    if(m)return m[1]+'/exec';
-    return '';
+    url=String(url||'').trim().replace(/\s+/g,'').replace(/[?#].*$/,'').replace(/\/+$/,'');
+    var match=url.match(/^(https:\/\/script\.google\.com\/macros\/s\/[^\/]+)(?:\/(exec|dev))?$/);
+    return match?match[1]+'/exec':'';
   }
   function backendUrl(){
-    var url='';
-    try{url=localStorage.getItem(URL_KEY)||''}catch(e){}
-    if(!url){try{url=localStorage.getItem(OLD_URL_KEY)||''}catch(e){}}
-    if(!url&&typeof window.HP_APPS_SCRIPT_URL==='string')url=window.HP_APPS_SCRIPT_URL;
-    url=normalizeUrl(url)||FIXED_URL;
-    try{localStorage.setItem(URL_KEY,url);localStorage.setItem(OLD_URL_KEY,url)}catch(e){}
+    var configured=normalizeUrl(window.HP_APPS_SCRIPT_URL||FIXED_URL)||FIXED_URL;
+    var stored='';try{stored=normalizeUrl(localStorage.getItem(URL_KEY)||localStorage.getItem(OLD_URL_KEY)||'')}catch(error){}
+    var url=configured||stored||FIXED_URL;
+    try{localStorage.setItem(URL_KEY,url);localStorage.setItem(OLD_URL_KEY,url)}catch(error){}
     window.HP_APPS_SCRIPT_URL=url;
     return url;
   }
   function deviceId(){
     if(state.deviceId)return state.deviceId;
-    try{state.deviceId=localStorage.getItem('hayder_pack_device_id_v37')||''}catch(e){}
-    if(!state.deviceId){state.deviceId='dev-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);try{localStorage.setItem('hayder_pack_device_id_v37',state.deviceId)}catch(e){}}
+    try{state.deviceId=localStorage.getItem(DEVICE_KEY)||''}catch(error){}
+    if(!state.deviceId){state.deviceId='dev-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);try{localStorage.setItem(DEVICE_KEY,state.deviceId)}catch(error){}}
     return state.deviceId;
   }
-  function saveState(){
-    deviceId();
-    try{localStorage.setItem(META_KEY,JSON.stringify(state))}catch(e){}
-    updateUI();
+  function mutationId(){return 'mut-'+Date.now().toString(36)+'-'+deviceId().replace(/[^a-zA-Z0-9]/g,'').slice(-12)+'-'+Math.random().toString(36).slice(2,12)}
+  function installUniqueIds(){
+    var fn=function(){var value=Date.now()*1000+Math.floor(Math.random()*1000);DB._id=Math.max(n(DB._id),value);return 'i'+String(value)};
+    window.uid=fn;try{uid=fn}catch(error){}
   }
-  function loadState(){
-    try{var m=JSON.parse(localStorage.getItem(META_KEY)||'{}');if(m&&typeof m==='object')Object.assign(state,m)}catch(e){}
-    LEGACY_META_KEYS.forEach(function(k){
-      try{
-        var m=JSON.parse(localStorage.getItem(k)||'{}');
-        if(m&&typeof m==='object'){
-          if(!state.revision&&m.revision)state.revision=Number(m.revision)||0;
-          if(!state.updatedAt&&m.updatedAt)state.updatedAt=m.updatedAt;
-          if(!state.ackHash&&(m.checksum||m.hash))state.ackHash=m.checksum||m.hash;
-        }
-      }catch(e){}
+
+  function saveState(){deviceId();writeJSON(META_KEY,state);updateUI()}
+  function loadState(){var old=readJSON(META_KEY,{});if(old&&typeof old==='object')Object.assign(state,old);deviceId();saveState()}
+  function readConfirmed(){var value=readJSON(CONFIRMED_KEY,null);return value&&value.data?value:null}
+  function writeConfirmed(data,meta){
+    confirmed={revision:Number(meta&&meta.revision)||0,updatedAt:meta&&meta.updatedAt||'',checksum:meta&&meta.checksum||dataHash(data),stateHash:meta&&meta.stateHash||'',data:cleanData(data)};
+    writeJSON(CONFIRMED_KEY,confirmed);
+    state.revision=confirmed.revision;state.updatedAt=confirmed.updatedAt;state.ackHash=confirmed.checksum;state.stateHash=confirmed.stateHash;state.backendVersion=meta&&meta.backendVersion||meta&&meta.appVersion||state.backendVersion;saveState();
+  }
+
+  function emptyQueue(){return {formatVersion:2,queue:[],localSnapshot:null,legacySnapshot:null,localUpdatedAt:'',attempts:0,lastError:'',lastErrorCategory:''}}
+  function loadQueue(){
+    var raw=readJSON(PENDING_KEY,null);
+    if(!raw)return emptyQueue();
+    if(raw.formatVersion===2&&Array.isArray(raw.queue))return raw;
+    var legacy=raw&&raw.data?cleanData(raw.data):null;
+    return {formatVersion:2,queue:[],localSnapshot:legacy,legacySnapshot:legacy,localUpdatedAt:raw.localUpdatedAt||now(),attempts:n(raw.attempts),lastError:'',lastErrorCategory:''};
+  }
+  function saveQueue(queue){
+    queue=queue||emptyQueue();queue.formatVersion=2;queue.localUpdatedAt=queue.localUpdatedAt||now();queue.attempts=queue.queue&&queue.queue[0]?n(queue.queue[0].attempts):0;
+    if((!queue.queue||!queue.queue.length)&&!queue.legacySnapshot&&!queue.unbasedSnapshot){try{localStorage.removeItem(PENDING_KEY)}catch(error){}updateUI();return}
+    writeJSON(PENDING_KEY,queue);updateUI();
+  }
+  function pendingData(){var queue=loadQueue();return queue.queue.length||queue.legacySnapshot||queue.unbasedSnapshot?queue:null}
+  function pendingCount(){var queue=loadQueue();return queue.queue.length+(queue.legacySnapshot||queue.unbasedSnapshot?1:0)}
+  function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch(error){}updateUI()}
+
+  function arrayHasIds(list){
+    if(!Array.isArray(list))return false;
+    var seen={};
+    for(var i=0;i<list.length;i++){if(!list[i]||typeof list[i]!=='object'||Array.isArray(list[i])||!String(list[i].id||''))return false;var id=String(list[i].id);if(seen[id])return false;seen[id]=true}
+    return true;
+  }
+  function mapById(list){var out={};(list||[]).forEach(function(item){out[String(item.id)]=item});return out}
+  function buildPatch(beforeInput,afterInput){
+    var before=cleanData(beforeInput||{}),after=cleanData(afterInput||{}),collections=[],values=[];
+    var keys={};Object.keys(before).concat(Object.keys(after)).forEach(function(key){keys[key]=true});
+    Object.keys(keys).sort().forEach(function(key){
+      var be=Object.prototype.hasOwnProperty.call(before,key),ae=Object.prototype.hasOwnProperty.call(after,key),b=before[key],a=after[key];
+      if(be&&ae&&Array.isArray(b)&&Array.isArray(a)&&arrayHasIds(b)&&arrayHasIds(a)){
+        var bm=mapById(b),am=mapById(a),adds=[],updates=[],deletes=[];
+        Object.keys(am).forEach(function(id){if(!bm[id])adds.push(clone(am[id]));else if(!same(bm[id],am[id]))updates.push({id:id,before:clone(bm[id]),after:clone(am[id])})});
+        Object.keys(bm).forEach(function(id){if(!am[id])deletes.push({id:id,before:clone(bm[id])})});
+        if(adds.length||updates.length||deletes.length)collections.push({key:key,adds:adds,updates:updates,deletes:deletes});
+      }else if(be!==ae||!same(b,a)){
+        values.push({key:key,beforeExists:be,before:be?clone(b):null,afterExists:ae,after:ae?clone(a):null});
+      }
     });
-    deviceId();saveState();
+    return {collections:collections,values:values};
   }
-  function setText(id,txt,cls){var el=$(id);if(!el)return;el.textContent=txt;if(cls)el.className='cloud-status-value '+cls}
-  function pendingData(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'null')}catch(e){return null}}
-  function savePending(p){try{localStorage.setItem(PENDING_KEY,JSON.stringify(p))}catch(e){console.error(e)}updateUI()}
-  function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch(e){}updateUI()}
-  function pendingCount(){return pendingData()?1:0}
-  function setSync(stateName,msg){
-    try{if(typeof setSyncState==='function')setSyncState(stateName,msg||'')}catch(e){}
-    var s=$('sync-status');if(s)s.textContent=msg||'';
-    var cls=stateName==='ok'?'success':stateName==='work'?'warn':stateName==='err'?'danger':'';
-    var label=stateName==='ok'?'متصل ومحفوظ':stateName==='work'?'مزامنة تلقائية':stateName==='err'?'محفوظ محليًا / لم يصل Google':'جاهز';
-    setText('cloud-connection-status',label,cls);
-    if(stateName==='err')showOffline(msg);
+  function patchEmpty(patch){return !patch||(!(patch.collections||[]).length&&!(patch.values||[]).length)}
+  function buildRecoveryPatch(remote,local){
+    var patch=buildPatch(remote,local);
+    patch.collections=(patch.collections||[]).map(function(change){return {key:change.key,adds:change.adds||[],updates:[],deletes:[]}}).filter(function(change){return change.adds.length});
+    patch.values=(patch.values||[]).filter(function(change){return change.key==='_id'});
+    return patch;
   }
-  var offlineTimer=null;
-  function showOffline(msg){
-    var off=$('cloud-offline-banner');if(!off)return;
-    off.textContent=msg||'تم الحفظ على الجهاز — سيتم الرفع تلقائيًا عند رجوع الاتصال.';
-    off.classList.add('show');clearTimeout(offlineTimer);offlineTimer=setTimeout(function(){off.classList.remove('show')},4200);
+  function inferOperation(reason,patch){
+    var change=patch&&patch.collections&&patch.collections.length===1&&!(patch.values||[]).length?patch.collections[0]:null;
+    if(!change)return String(reason||'updateBusinessData').slice(0,80);
+    var action=change.adds.length?'add':change.deletes.length?'delete':change.updates.length?'edit':'update';
+    var names={clients:'Client',factories:'Factory',orders:'Order',payments:'Payment',transfers:'FactoryPayment',expenses:'Expense',capitalMoves:'CapitalMove',documents:'Document',houseExpenses:'HouseholdExpense',walletAdjustments:'LiquidityAdjustment'};
+    return names[change.key]?action+names[change.key]:String(reason||'updateBusinessData').slice(0,80);
+  }
+  function entityTypeForPatch(patch){return patch&&patch.collections&&patch.collections[0]?String(patch.collections[0].key||'data'): 'data'}
+  function applyPatchLocal(data,patch){
+    var next=clone(data||{});
+    (patch.collections||[]).forEach(function(change){
+      if(!Array.isArray(next[change.key]))next[change.key]=[];
+      var list=next[change.key];
+      (change.adds||[]).forEach(function(item){if(!list.some(function(x){return String(x&&x.id)===String(item.id)}))list.push(clone(item))});
+      (change.updates||[]).forEach(function(item){var index=list.findIndex(function(x){return String(x&&x.id)===String(item.id)});if(index>=0)list[index]=clone(item.after)});
+      (change.deletes||[]).forEach(function(item){next[change.key]=next[change.key].filter(function(x){return String(x&&x.id)!==String(item.id)});list=next[change.key]});
+    });
+    (patch.values||[]).forEach(function(change){if(change.afterExists)next[change.key]=clone(change.after);else delete next[change.key]});
+    return cleanData(next);
+  }
+
+  function captureActiveForm(){
+    var root=document.querySelector('.overlay.open[id],.drawer-root.open[id],.modal.open[id]');
+    if(!root||!root.id)return null;
+    var fields=[];Array.prototype.forEach.call(root.querySelectorAll('input,select,textarea'),function(element){if(!element.id&&!element.name)return;fields.push({id:element.id||'',name:element.name||'',type:element.type||'',value:element.value,checked:!!element.checked})});
+    return {drawerId:root.id,fields:fields,capturedAt:now()};
+  }
+  function restoreForm(snapshot){
+    if(!snapshot||!snapshot.drawerId)return;
+    var root=$(snapshot.drawerId);if(!root)return;root.classList.add('open');
+    (snapshot.fields||[]).forEach(function(field){var element=field.id?$(field.id):null;if(!element&&field.name)element=root.querySelector('[name="'+String(field.name).replace(/"/g,'\\"')+'"]');if(!element)return;if(field.type==='checkbox'||field.type==='radio')element.checked=!!field.checked;else element.value=field.value});
+    Array.prototype.forEach.call(root.querySelectorAll('button[data-hp-v58-disabled="1"]'),function(button){button.disabled=false;button.removeAttribute('data-hp-v58-disabled')});
+  }
+  function holdForm(snapshot){
+    if(!snapshot||!snapshot.drawerId)return;
+    deferredDrawers[snapshot.drawerId]=snapshot;
+    var root=$(snapshot.drawerId);if(!root)return;
+    Array.prototype.forEach.call(root.querySelectorAll('button[onclick*="save" i],button[onclick*="Save" i]'),function(button){button.disabled=true;button.setAttribute('data-hp-v58-disabled','1')});
+    setTimeout(function(){restoreForm(snapshot)},0);
+  }
+  function releaseForm(snapshot,success){
+    if(!snapshot||!snapshot.drawerId)return;
+    restoreForm(snapshot);
+    if(success&&typeof originalCloseDrawer==='function'){try{originalCloseDrawer(snapshot.drawerId)}catch(error){}}
+    delete deferredDrawers[snapshot.drawerId];
+  }
+  function installCloseGuard(){
+    if(typeof originalCloseDrawer!=='function'||window.closeDrawer&&window.closeDrawer.__hpV58Guard)return;
+    var guarded=function(id){if(deferredDrawers[id]&&pendingData()){restoreForm(deferredDrawers[id]);return false}return originalCloseDrawer.apply(this,arguments)};
+    guarded.__hpV58Guard=true;window.closeDrawer=guarded;try{closeDrawer=guarded}catch(error){}
+  }
+
+  function localWrite(db){
+    try{DB=cleanData(db||DB);if(typeof reduceDBForStorage==='function')reduceDBForStorage();localStorage.setItem(LOCAL_KEY,JSON.stringify(DB));return true}
+    catch(error){console.error(error);toastSafe('تعذر الحفظ على الجهاز لأن المساحة ممتلئة');return false}
+  }
+  function localRead(){try{var raw=localStorage.getItem(LOCAL_KEY);if(raw)DB=cleanData(JSON.parse(raw));if(typeof migrate==='function')migrate();localStorage.setItem(LOCAL_KEY,JSON.stringify(DB))}catch(error){console.error(error)}}
+  function saveEmergencyLocalBackup(reason,data){
+    var value=cleanData(data||DB||{});if(!hasUsefulData(value))return;
+    writeJSON(EMERGENCY_KEY,{version:VERSION,reason:reason||'emergency',createdAt:now(),counts:counts(value),data:value});
+  }
+
+  function markPending(reason){
+    var current=cleanData(DB||{}),queue=loadQueue(),base=queue.localSnapshot||(confirmed&&confirmed.data)||null;
+    if(!base){queue.unbasedSnapshot=current;queue.localSnapshot=current;queue.localUpdatedAt=now();saveQueue(queue);schedulePush(100);return queue}
+    var patch=buildPatch(base,current);
+    if(patchEmpty(patch)){queue.localSnapshot=current;saveQueue(queue);return pendingData()}
+    var form=captureActiveForm(),item={mutationId:mutationId(),operation:inferOperation(reason,patch),entityType:entityTypeForPatch(patch),createdAt:now(),baseRevision:null,patch:patch,reason:String(reason||'auto-save').slice(0,120),attempts:0,lastAttemptAt:'',form:form,blocked:false};
+    queue.queue.push(item);queue.localSnapshot=current;queue.localUpdatedAt=item.createdAt;queue.lastError='';queue.lastErrorCategory='';state.lastLocalSaveAt=item.createdAt;saveState();saveQueue(queue);holdForm(form);schedulePush(80);return queue;
+  }
+
+  function setText(id,text,cls){var element=$(id);if(!element)return;element.textContent=text;if(cls)element.className='cloud-status-value '+cls}
+  function setSync(name,message){
+    try{if(typeof setSyncState==='function')setSyncState(name,message||'')}catch(error){}
+    var status=$('sync-status');if(status)status.textContent=message||'';
+    var cls=name==='ok'?'success':name==='work'?'warn':name==='err'?'danger':'';
+    setText('cloud-connection-status',name==='ok'?'متصل ومحفوظ':name==='work'?'جاري تأكيد Google':name==='err'?'الحفظ لم يتأكد بعد':'جاهز',cls);
+    var banner=$('cloud-offline-banner');if(banner&&name==='err'){banner.textContent=message||'لم يتم تأكيد الحفظ على Google';banner.classList.add('show')}
   }
   function updateUI(){
-    setText('cloud-revision-status',String(state.revision||0));
-    setText('cloud-last-status',fmtTime(state.lastCloudSaveAt||state.updatedAt));
-    var area=$('cloud-conflict-area');
-    var p=pendingData();
-    if(area){
-      area.innerHTML=p?'<div class="cloud-conflict-note" style="background:#FFF2B8;border-color:#000;color:#000">تم حفظ آخر تعديل على الجهاز وجاري رفعه تلقائيًا إلى Google. لا تحتاج تضغط أي زر.<br>آخر حفظ محلي: '+fmtTime(p.localUpdatedAt||state.lastLocalSaveAt)+'<br>محاولات الرفع: '+(p.attempts||0)+'</div>':'';
-    }
-    var health=$('data-health-status');
-    if(health&&p){health.textContent='سليمة — يوجد تعديل في انتظار الرفع التلقائي'}
+    setText('cloud-revision-status',String(state.revision||0));setText('cloud-last-status',fmtTime(state.lastCloudSaveAt||state.updatedAt));
+    var queue=pendingData(),area=$('cloud-conflict-area');
+    if(area)area.innerHTML=queue?'<div class="cloud-conflict-note" style="background:#FFF2B8;border-color:#000;color:#000">يوجد '+pendingCount()+' تعديل في انتظار تأكيد Google.<br>آخر محاولة: '+fmtTime(state.lastAttemptAt)+'<br>السبب: '+String(queue.lastError||state.lastError||'جاري الحفظ')+'<div class="btn-row" style="margin-top:8px"><button class="btn green" onclick="manualSync()">إعادة المحاولة الآن</button><button class="btn blue" onclick="downloadPendingOperation()">تنزيل العملية للطوارئ</button></div></div>':'';
+    var health=$('data-health-status');if(health)health.textContent=queue?'سليمة محليًا — في انتظار تأكيد Google':'سليمة ومحفوظة على Google';
+    var line=$('hp-v37-pending-line');if(line)line.textContent='حركات في انتظار التأكيد: '+pendingCount();
   }
-  function hideLoading(){var c=$('cloud-loading-cover');if(c)c.classList.add('hide')}
-  function onePage(){
-    try{
-      var pages=[].slice.call(document.querySelectorAll('.page'));
-      if(pages.length){var act=pages.filter(function(p){return p.classList.contains('active')});if(act.length!==1)pages.forEach(function(p,i){p.classList.toggle('active',i===0)})}
-      var nav=[].slice.call(document.querySelectorAll('.nb'));
-      if(nav.length){var nact=nav.filter(function(b){return b.classList.contains('active')});if(nact.length!==1)nav.forEach(function(b,i){b.classList.toggle('active',i===0)})}
-    }catch(e){}
-  }
+  function hideLoading(){var cover=$('cloud-loading-cover');if(cover)cover.classList.add('hide')}
+  function onePage(){try{var pages=[].slice.call(document.querySelectorAll('.page')),active=pages.filter(function(page){return page.classList.contains('active')});if(pages.length&&active.length!==1)pages.forEach(function(page,index){page.classList.toggle('active',index===0)})}catch(error){}}
+
   function jsonp(action,params,timeoutMs){
     return new Promise(function(resolve,reject){
-      var url=backendUrl();
-      var cb='hpV37_'+Date.now()+'_'+Math.floor(Math.random()*1000000);
-      var q='action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(cb)+'&_='+Date.now();
-      params=params||{};Object.keys(params).forEach(function(k){q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k])});
-      var script=document.createElement('script'),done=false,timer;
-      window[cb]=function(res){done=true;cleanup();resolve(res)};
-      function cleanup(){try{delete window[cb]}catch(e){window[cb]=undefined}if(script&&script.parentNode)script.parentNode.removeChild(script);clearTimeout(timer)}
-      script.onerror=function(){if(!done){cleanup();reject(new Error('تعذر الاتصال بـ Apps Script'))}};
-      timer=setTimeout(function(){if(!done){cleanup();reject(new Error('المزامنة بطيئة — سيتم إعادة المحاولة تلقائيًا'))}},timeoutMs||30000);
-      script.src=url+(url.indexOf('?')>=0?'&':'?')+q;document.head.appendChild(script);
+      var url=backendUrl(),callback='hpV58_'+Date.now()+'_'+Math.floor(Math.random()*1000000),query='action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(callback)+'&_='+Date.now(),script=document.createElement('script'),done=false,timer;
+      params=params||{};Object.keys(params).forEach(function(key){query+='&'+encodeURIComponent(key)+'='+encodeURIComponent(params[key])});
+      function cleanup(){try{delete window[callback]}catch(error){window[callback]=undefined}if(script.parentNode)script.parentNode.removeChild(script);clearTimeout(timer)}
+      window[callback]=function(result){done=true;cleanup();resolve(result)};
+      script.onerror=function(){if(!done){cleanup();reject(categoryError('BACKEND_UNREACHABLE','تعذر الوصول إلى Google Apps Script'))}};
+      timer=setTimeout(function(){if(!done){cleanup();reject(categoryError('NETWORK_TIMEOUT','انتهت مهلة الاتصال أثناء انتظار Google'))}},timeoutMs||30000);
+      script.src=url+(url.indexOf('?')>=0?'&':'?')+query;document.head.appendChild(script);
     });
   }
   function postForm(action,fields){
-    return new Promise(function(resolve){
-      var url=backendUrl(), iframeName='hp_v37_post_'+Date.now();
-      var iframe=document.createElement('iframe');iframe.name=iframeName;iframe.style.display='none';
-      var form=document.createElement('form');form.method='POST';form.action=url;form.target=iframeName;form.style.display='none';form.acceptCharset='UTF-8';
-      fields=fields||{};fields.action=action;fields.appVersion='57.5.0-print-reliability';fields.siteVersion='57_5printfinal';
-      Object.keys(fields).forEach(function(k){var t=document.createElement('textarea');t.name=k;t.value=String(fields[k]==null?'':fields[k]);form.appendChild(t)});
-      document.body.appendChild(iframe);document.body.appendChild(form);form.submit();
-      setTimeout(function(){try{form.remove();iframe.remove()}catch(e){}resolve({ok:true})},2300);
-    });
-  }
-  function localWrite(db){
-    try{
-      DB=cleanData(db||DB);
-      if(typeof reduceDBForStorage==='function')reduceDBForStorage();
-      localStorage.setItem(LOCAL_KEY,JSON.stringify(DB));
-      return true;
-    }catch(e){console.error(e);toastSafe('تعذر الحفظ المحلي: مساحة الجهاز ممتلئة أو الصور كبيرة');return false}
-  }
-  function localRead(){
-    try{var d=localStorage.getItem(LOCAL_KEY);if(d){DB=cleanData(JSON.parse(d));if(typeof migrate==='function')migrate();if(typeof reduceDBForStorage==='function')reduceDBForStorage();localStorage.setItem(LOCAL_KEY,JSON.stringify(DB));}}
-    catch(e){console.error(e)}
-  }
-  function markPending(reason){
-    var clean=cleanData(DB||{});
-    if(!hasUsefulData(clean))return null;
-    var old=pendingData()||{};
-    var p={
-      id:'chg-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),
-      reason:reason||'auto-save',
-      localUpdatedAt:now(),
-      baseRevision:state.revision||0,
-      deviceId:deviceId(),
-      attempts:0,
-      hash:dataHash(clean),
-      counts:counts(clean),
-      data:clean
-    };
-    if(old&&old.hash===p.hash){p.id=old.id||p.id;p.attempts=old.attempts||0;p.localUpdatedAt=old.localUpdatedAt||p.localUpdatedAt;}
-    state.lastLocalSaveAt=p.localUpdatedAt;saveState();savePending(p);return p;
-  }
-  function migrateLegacyPending(){
-    if(pendingData())return;
-    for(var i=0;i<LEGACY_PENDING_KEYS.length;i++){
+    return new Promise(function(resolve,reject){
       try{
-        var raw=localStorage.getItem(LEGACY_PENDING_KEYS[i]);if(!raw)continue;
-        var old=JSON.parse(raw);var data=old&&old.data?old.data:(old&&old.local?old.local:null);
-        if(data&&hasUsefulData(data)){
-          DB=cleanData(data);
-          markPending('legacy-pending');
-          return;
-        }
-      }catch(e){}
-    }
-  }
-  function applyRemote(data,meta,msg){
-    if(!data||typeof data!=='object')throw new Error('الداتا القادمة من Google غير صالحة');
-    var remoteClean=cleanData(data);
-    if((!hasUsefulData(remoteClean) && hasUsefulData(DB)) || isDangerousRemote(remoteClean,DB)){
-      saveEmergencyLocalBackup('blocked-dangerous-google-over-local');
-      setSync('err','تم منع تحميل نسخة Google فارغة أو ناقصة فوق بيانات موجودة على الجهاز');
-      throw new Error('Google أرجع نسخة فارغة/ناقصة — تم حماية الداتا المحلية ولم يتم استبدالها');
-    }
-    if(hasUsefulData(DB))saveEmergencyLocalBackup('before-remote-apply');
-    suppress=true;
-    try{
-      DB=remoteClean;
-      if(typeof migrate==='function')migrate();
-      if(typeof reduceDBForStorage==='function')reduceDBForStorage();
-      localStorage.setItem(LOCAL_KEY,JSON.stringify(DB));
-    }finally{suppress=false}
-    var h=dataHash(DB);
-    state.revision=Number(meta&&meta.revision)||state.revision||0;
-    state.updatedAt=(meta&&meta.updatedAt)||state.updatedAt||'';
-    state.ackHash=(meta&&meta.checksum)||h;
-    state.lastCloudSaveAt=state.updatedAt||now();
-    state.lastError='';saveState();clearPending();
-    try{if(typeof refreshAll==='function')refreshAll();if(typeof runDataHealthCheckUI==='function')runDataHealthCheckUI()}catch(e){console.error(e)}
-    onePage();setSync('ok',msg||'تم تحديث الداتا من Google');
-  }
-  function schedulePush(delay){
-    clearTimeout(syncTimer);
-    delay=delay==null?1800:delay;
-    syncTimer=setTimeout(function(){pushPending(false)},delay);
-  }
-  function scheduleRetry(){
-    clearTimeout(retryTimer);
-    var p=pendingData();if(!p)return;
-    var tries=Number(p.attempts)||0;
-    var delay=Math.min(120000,[5000,10000,20000,30000,60000,120000][Math.min(tries,5)]||120000);
-    retryTimer=setTimeout(function(){pushPending(false)},delay);
-  }
-  function confirmUploaded(expectedHash,tries){
-    tries=tries||1;
-    return jsonp('data',{},30000).then(function(res){
-      if(!res||res.ok===false)throw new Error((res&&res.message)||'تعذر تأكيد الحفظ على Google');
-      var h=(res.checksum||dataHash(res.data||{}));
-      if(h===expectedHash)return res;
-      if(tries<6)return new Promise(function(resolve){setTimeout(resolve,1800)}).then(function(){return confirmUploaded(expectedHash,tries+1)});
-      return res;
+        var url=backendUrl(),name='hp_v58_post_'+Date.now(),iframe=document.createElement('iframe'),form=document.createElement('form');
+        iframe.name=name;iframe.style.display='none';form.method='POST';form.action=url;form.target=name;form.style.display='none';form.acceptCharset='UTF-8';
+        fields=fields||{};fields.action=action;fields.appVersion=VERSION;fields.siteVersion=SITE_VERSION;
+        Object.keys(fields).forEach(function(key){var input=document.createElement('textarea');input.name=key;input.value=String(fields[key]==null?'':fields[key]);form.appendChild(input)});
+        document.body.appendChild(iframe);document.body.appendChild(form);form.submit();
+        setTimeout(function(){try{form.remove();iframe.remove()}catch(error){}resolve({submitted:true})},900);
+      }catch(error){reject(categoryError('BACKEND_UNREACHABLE','تعذر إرسال عملية الحفظ إلى Google'))}
     });
   }
-  async function forceReplacePending(p){
-    if(!p||!hasUsefulData(p.data)){clearPending();throw new Error('تم منع رفع نسخة فارغة إلى Google')}
-    setSync('work','جاري تثبيت آخر تعديل محلي على Google تلقائيًا...');
-    await postForm('replace',{baseRevision:0,force:'1',data:JSON.stringify(p.data),reason:'v37-auto-local-first'});
-    await new Promise(function(resolve){setTimeout(resolve,2600)});
-    var res=await confirmUploaded(p.hash,1);
-    var h=(res.checksum||dataHash(res.data||{}));
-    if(h!==p.hash)throw new Error('لم يصل تأكيد Google حتى الآن — التعديل محفوظ محليًا وسيعاد التأكيد تلقائيًا');
-    applyRemote(res.data,res,'تم حفظ التعديل على Google تلقائيًا');
-    return true;
+  function responseError(result){
+    if(result&&result.category)return categoryError(result.category,result.message||'رفض Google عملية الحفظ',result.details);
+    if(result&&result.message&&/Unknown action/i.test(result.message))return categoryError('VERSION_REJECTED','ملف Code.gs المنشور لا يدعم V58. استبدله بالملف الجديد ثم اعمل Deploy جديد.');
+    return categoryError('SERVER_INTERNAL_ERROR',result&&result.message||'تعذر تأكيد عملية الحفظ');
+  }
+  async function pollMutation(id){
+    var lastError=null;
+    for(var attempt=0;attempt<7;attempt++){
+      try{
+        var result=await jsonp('getMutationStatus',{mutationId:id},25000);
+        if(result&&result.status==='committed'&&result.ok!==false)return result;
+        if(result&&result.status==='rejected')throw responseError(result);
+        if(result&&result.ok===false)throw responseError(result);
+      }catch(error){lastError=error;if(error.category==='VERSION_REJECTED'||error.category==='INVALID_PAYLOAD'||error.category==='REVISION_CONFLICT'||error.category==='STATE_VALIDATION_FAILED')throw error}
+      await wait(1000+attempt*700);
+    }
+    throw lastError||categoryError('MUTATION_STATUS_UNKNOWN','لم يصل تأكيد Google بعد؛ العملية محفوظة وسيعاد الاستعلام بنفس الرقم');
+  }
+
+  function schedulePush(delay){clearTimeout(syncTimer);syncTimer=setTimeout(function(){pushPending(false)},delay==null?900:delay)}
+  function scheduleRetry(){
+    clearTimeout(retryTimer);var queue=pendingData();if(!queue||!queue.queue.length)return;
+    var first=queue.queue[0];if(first.blocked)return;
+    var delay=RETRY_DELAYS[Math.min(n(first.attempts),RETRY_DELAYS.length-1)];retryTimer=setTimeout(function(){pushPending(false)},delay);
+  }
+  function updateConfirmedFromReceipt(item,result){
+    var base=confirmed&&confirmed.data?confirmed.data:{};
+    var data=item.operation==='replaceSnapshot'?cleanData(item.replaceData||{}):applyPatchLocal(base,item.patch||{});
+    writeConfirmed(data,{revision:result.revision,updatedAt:result.serverTimestamp,checksum:dataHash(data),stateHash:result.stateHash,backendVersion:result.backendVersion});
+  }
+  async function sendMutation(item){
+    item.attempts=n(item.attempts)+1;item.lastAttemptAt=now();if(item.baseRevision==null)item.baseRevision=n(state.revision);
+    state.lastAttemptAt=item.lastAttemptAt;saveState();
+    var payload=item.operation==='replaceSnapshot'?{data:item.replaceData,confirm:'REPLACE_CONFIRMED'}:{patch:item.patch};
+    await postForm('commitMutation',{mutationId:item.mutationId,deviceId:deviceId(),baseRevision:item.baseRevision,operation:item.operation,entityType:item.entityType||'data',createdAt:item.createdAt,payload:JSON.stringify(payload)});
+    return pollMutation(item.mutationId);
   }
   async function pushPending(show){
     if(saving)return false;
-    var p=pendingData();
-    if(!p){if(show)toastSafe('لا توجد تعديلات معلقة');return checkMeta(false)}
-    if(!hasUsefulData(p.data)){clearPending();setSync('err','تم منع رفع نسخة فارغة إلى Google');return false}
-    if(!navigator.onLine){setSync('err','تم الحفظ على الجهاز — سيتم الرفع تلقائيًا عند رجوع الإنترنت');scheduleRetry();return false}
-    saving=true;p.attempts=Number(p.attempts||0)+1;p.lastAttemptAt=now();savePending(p);state.lastAttemptAt=p.lastAttemptAt;saveState();
+    var queue=loadQueue();
+    if(queue.legacySnapshot||queue.unbasedSnapshot){await prepareUnbasedQueue(queue);queue=loadQueue()}
+    if(!queue.queue.length){if(show)toastSafe('لا توجد تعديلات معلقة');return checkMeta(false)}
+    if(!navigator.onLine){setSync('err','لا يوجد إنترنت — البيانات محفوظة على الجهاز ولم يتم اعتبارها محفوظة على Google');scheduleRetry();return false}
+    var item=queue.queue[0];if(item.blocked&&!show){updateUI();return false}if(show)item.blocked=false;
+    saving=true;setSync('work','جاري الحفظ على Google...');saveQueue(queue);
     try{
-      setSync('work','جاري المزامنة التلقائية مع Google...');
-      await postForm('save',{baseRevision:p.baseRevision||0,data:JSON.stringify(p.data),clientTime:now(),deviceId:deviceId()});
-      await new Promise(function(resolve){setTimeout(resolve,2600)});
-      var res=await confirmUploaded(p.hash,1);
-      if(!res||res.ok===false)throw new Error((res&&res.message)||'تعذر تأكيد الحفظ');
-      var remoteHash=(res.checksum||dataHash(res.data||{}));
-      if(remoteHash===p.hash){applyRemote(res.data,res,'تم حفظ التعديل على Google تلقائيًا');if(show)toastSafe('تمت المزامنة');saving=false;return true;}
-      // Conflict or stale revision: local-first, keep user's latest local edit and retry with protected replace.
-      await forceReplacePending(p);
-      if(show)toastSafe('تمت المزامنة');saving=false;return true;
-    }catch(e){
-      saving=false;console.error(e);state.lastError=e.message||'فشل الرفع';saveState();setSync('err',(e.message||'تعذر الرفع')+' — سيعاد تلقائيًا');scheduleRetry();return false;
+      var result=await sendMutation(item);
+      updateConfirmedFromReceipt(item,result);
+      queue=loadQueue();
+      if(queue.queue.length&&queue.queue[0].mutationId===item.mutationId)queue.queue.shift();
+      queue.lastError='';queue.lastErrorCategory='';queue.localUpdatedAt=now();saveQueue(queue);
+      releaseForm(item.form,true);
+      state.lastCloudSaveAt=result.serverTimestamp||now();state.lastError='';state.lastErrorCategory='';state.revision=n(result.revision)||state.revision;state.stateHash=result.stateHash||state.stateHash;saveState();
+      toastSafe('تم الحفظ على Google');
+      saving=false;
+      if(queue.queue.length){schedulePush(60);return true}
+      await pull(false,true);
+      return true;
+    }catch(error){
+      saving=false;queue=loadQueue();var current=queue.queue[0];
+      var category=error.category||'SERVER_INTERNAL_ERROR',message=errorMessage(error);
+      if(current){current.attempts=item.attempts;current.lastAttemptAt=item.lastAttemptAt;current.blocked=['INVALID_PAYLOAD','REVISION_CONFLICT','VERSION_REJECTED','STATE_VALIDATION_FAILED'].indexOf(category)>=0}
+      queue.lastError=message;queue.lastErrorCategory=category;saveQueue(queue);restoreForm(item.form);
+      state.lastError=message;state.lastErrorCategory=category;saveState();setSync('err',category+': '+message);
+      if(!current||!current.blocked)scheduleRetry();
+      if(show)toastSafe(message);
+      return false;
     }
   }
-  async function restoreFromRecoveryAction(action,label){
-    setSync('work','جاري محاولة استرجاع الداتا من Google Backup...');
-    var res=await jsonp(action,{},45000);
-    if(!res||res.ok===false)throw new Error((res&&res.message)||'فشل الاسترجاع من Google Backup');
-    applyRemote(res.data,res,label||'تم استرجاع الداتا من Google Backup');
-    toastSafe(label||'تم استرجاع الداتا');
-    return res;
+
+  async function getRemoteState(){var result=await jsonp('getState',{},35000);if(!result||result.ok===false)throw responseError(result);if(!result.data||typeof result.data!=='object')throw categoryError('STATE_VALIDATION_FAILED','Google أعاد بيانات غير صالحة');return result}
+  function applyRemote(result,message){
+    var remote=cleanData(result.data||{});if(!hasUsefulData(remote)&&hasUsefulData(DB))throw categoryError('STATE_VALIDATION_FAILED','Google أعاد قاعدة فارغة؛ تم الحفاظ على نسخة الجهاز ولم يتم استبدالها');
+    if(hasUsefulData(DB))saveEmergencyLocalBackup('before-google-state',DB);
+    suppress=true;try{DB=remote;if(typeof migrate==='function')migrate();localWrite(DB)}finally{suppress=false}
+    writeConfirmed(DB,result);state.lastCloudSaveAt=result.updatedAt||state.lastCloudSaveAt;state.lastError='';state.lastErrorCategory='';saveState();
+    try{if(typeof refreshAll==='function')refreshAll();if(typeof runDataHealthCheckUI==='function')runDataHealthCheckUI()}catch(error){console.error(error)}
+    setSync('ok',message||'متصل ومحفوظ على Google');onePage();return result;
   }
-  async function tryAutoRecoverFromGoogle(){
+  async function prepareUnbasedQueue(queue){
+    if(!navigator.onLine)throw categoryError('BACKEND_UNREACHABLE','يلزم الاتصال بـ Google لتجهيز التعديل المعلّق');
+    var remote=await getRemoteState(),local=cleanData(queue.legacySnapshot||queue.unbasedSnapshot||queue.localSnapshot||DB||{});
+    writeConfirmed(remote.data,remote);var patch=buildRecoveryPatch(remote.data,local);
+    queue.legacySnapshot=null;queue.unbasedSnapshot=null;queue.localSnapshot=local;
+    if(!patchEmpty(patch)){
+      queue.queue.push({mutationId:mutationId(),operation:inferOperation('recoverPendingData',patch),entityType:entityTypeForPatch(patch),createdAt:now(),baseRevision:n(remote.revision),patch:patch,reason:'recover-pending-data',attempts:0,lastAttemptAt:'',form:null,blocked:false});
+      saveQueue(queue);DB=local;localWrite(DB);
+    }else{
+      saveQueue(queue);applyRemote(remote,'تم تحميل آخر بيانات مؤكدة من Google');
+    }
+  }
+  async function pull(show,forceAfterCommit){
+    if(pendingData()&&!forceAfterCommit)return pushPending(!!show);
+    if(!navigator.onLine){setSync('err','أوفلاين — تم فتح آخر نسخة محفوظة على الجهاز');return null}
     try{
-      var status=await jsonp('status',{},30000);
-      if(status&&status.ok){
-        var prevUseful=status.previous&&Number(status.previous.usefulCount||0)>0;
-        var bakUseful=status.latestUsefulBackup&&Number(status.latestUsefulBackup.usefulCount||0)>0;
-        if(prevUseful)return restoreFromRecoveryAction('restorePrevious','تم استرجاع الداتا من النسخة السابقة على Google');
-        if(bakUseful)return restoreFromRecoveryAction('restoreLatestBackup','تم استرجاع الداتا من أحدث Backup على Google');
-      }
-      throw new Error('Google الحالي فارغ ولم أجد نسخة استرجاع تلقائية من داخل البرنامج');
-    }catch(e){
-      console.error(e);setSync('err',(e.message||'تعذر الاسترجاع')+' — لا تضيف بيانات جديدة الآن');return null;
-    }
+      setSync('work','جاري تحميل آخر بيانات مؤكدة من Google...');var result=await getRemoteState();
+      if(forceAfterCommit||!pendingData())applyRemote(result,show?'تم تحميل آخر تحديث من Google':'متصل ومحفوظ على Google');
+      if(show)toastSafe('تم تحميل آخر تحديث');return result;
+    }catch(error){state.lastError=errorMessage(error);state.lastErrorCategory=error.category||'BACKEND_UNREACHABLE';saveState();setSync('err',(error.category||'BACKEND_UNREACHABLE')+': '+errorMessage(error));return null}
   }
-  window.restorePreviousGoogleData=function(){return restoreFromRecoveryAction('restorePrevious','تم استرجاع النسخة السابقة من Google')};
-  window.restoreLatestGoogleBackup=function(){return restoreFromRecoveryAction('restoreLatestBackup','تم استرجاع أحدث Backup من Google')};
-  function pull(show){
-    if(pendingData()){
-      setSync('work','يوجد تعديل محفوظ محليًا — سيتم رفعه قبل أي تحميل من Google');
-      return pushPending(show);
+  async function bootPull(){
+    var queue=loadQueue(),local=cleanData(DB||{});
+    if(queue.legacySnapshot||queue.unbasedSnapshot){await prepareUnbasedQueue(queue);return pushPending(false)}
+    if(queue.queue.length)return pushPending(false);
+    var result=await getRemoteState(),remote=cleanData(result.data||{}),localChanged=state.ackHash&&dataHash(local)!==state.ackHash;
+    if(localChanged||(!state.ackHash&&hasUsefulData(local)&&usefulCount(local)>usefulCount(remote))){
+      saveEmergencyLocalBackup('local-difference-before-v58',local);writeConfirmed(remote,result);
+      var patch=buildRecoveryPatch(remote,local);
+      if(!patchEmpty(patch)){var recovery=emptyQueue();recovery.localSnapshot=local;recovery.localUpdatedAt=now();recovery.queue.push({mutationId:mutationId(),operation:inferOperation('recoverLocalChange',patch),entityType:entityTypeForPatch(patch),createdAt:now(),baseRevision:n(result.revision),patch:patch,reason:'recover-local-change',attempts:0,lastAttemptAt:'',form:null,blocked:false});saveQueue(recovery);return pushPending(false)}
     }
-    if(!navigator.onLine){setSync('err','أوفلاين — تم فتح آخر نسخة محفوظة على الجهاز');return Promise.resolve(null)}
-    setSync('work','جاري تحميل آخر بيانات من Google...');
-    return jsonp('data',{},30000).then(async function(res){
-      if(!res||res.ok===false)throw new Error((res&&res.message)||'تعذر قراءة Google');
-      var remoteClean=cleanData(res.data||{});
-      if(!hasUsefulData(remoteClean)){
-        if(hasUsefulData(DB)){
-          saveEmergencyLocalBackup('blocked-empty-google-pull');
-          setSync('err','Google أرجع نسخة فارغة — تم الحفاظ على بيانات الجهاز ولم يتم استبدالها');
-          return res;
-        }
-        setSync('work','Google الحالي فارغ — جاري البحث عن نسخة سابقة/Backup تلقائيًا...');
-        return await tryAutoRecoverFromGoogle();
-      }
-      applyRemote(remoteClean,res,show?'تم تحميل آخر بيانات من Google':'متصل ومحفوظ');if(show)toastSafe('تم تحميل آخر تحديث');return res;
-    }).catch(function(e){console.error(e);setSync('err',(e.message||'تعذر الاتصال')+' — البرنامج يعمل من آخر نسخة محفوظة');return null});
+    return applyRemote(result,'متصل ومحفوظ على Google');
   }
   function checkMeta(show){
     if(pendingData())return pushPending(false);
     if(!navigator.onLine)return Promise.resolve(null);
-    return jsonp('meta',{},15000).then(function(meta){
-      if(meta&&meta.ok){
-        var remoteRev=Number(meta.revision)||0;
-        if(remoteRev>Number(state.revision||0))return pull(false);
-        state.revision=remoteRev||state.revision;state.updatedAt=meta.updatedAt||state.updatedAt;state.ackHash=meta.checksum||state.ackHash;saveState();setSync('ok','متصل ومحفوظ');
-      }
-      return meta;
-    }).catch(function(e){if(show)setSync('err','تعذر قراءة حالة Google — سيعاد تلقائيًا');return null});
+    return jsonp('getRevision',{},18000).then(function(meta){if(!meta||meta.ok===false)throw responseError(meta);if(n(meta.revision)>n(state.revision))return pull(false);state.revision=n(meta.revision)||state.revision;state.updatedAt=meta.updatedAt||state.updatedAt;state.ackHash=meta.checksum||state.ackHash;state.stateHash=meta.stateHash||state.stateHash;state.backendVersion=meta.backendVersion||meta.appVersion||state.backendVersion;saveState();setSync('ok','متصل ومحفوظ على Google');return meta}).catch(function(error){if(show)setSync('err',(error.category||'BACKEND_UNREACHABLE')+': '+errorMessage(error));return null})
   }
-  function backup(){
-    if(!navigator.onLine){toastSafe('لازم إنترنت لإنشاء نسخة على Google');return}
-    setSync('work','جاري إنشاء نسخة احتياطية...');
-    jsonp('backup',{},30000).then(function(res){if(res&&res.ok){setSync('ok','تم إنشاء نسخة احتياطية على Google');toastSafe('تم إنشاء نسخة احتياطية')}else throw new Error((res&&res.message)||'تعذر إنشاء النسخة')}).catch(function(e){setSync('err',e.message||'تعذر إنشاء النسخة')});
+
+  function backup(){if(!navigator.onLine){toastSafe('يلزم الإنترنت لإنشاء Backup على Google');return Promise.resolve(false)}setSync('work','جاري إنشاء Backup على Google...');return jsonp('createBackup',{},35000).then(function(result){if(!result||result.ok===false)throw responseError(result);setSync('ok','تم إنشاء Backup على Google');toastSafe('تم إنشاء النسخة الاحتياطية');return true}).catch(function(error){setSync('err',errorMessage(error));toastSafe(errorMessage(error));return false})}
+  async function restoreFromRecoveryAction(action,label){
+    if(pendingData())throw categoryError('REVISION_CONFLICT','يوجد تعديل غير مؤكد. أكّد الحفظ أولًا قبل الاسترجاع.');
+    var result=await jsonp(action,{},45000);if(!result||result.ok===false)throw responseError(result);applyRemote(result,label||'تم الاسترجاع من Google');toastSafe(label||'تم الاسترجاع');return result;
   }
-  function extractImport(parsed){
-    if(!parsed||typeof parsed!=='object')throw new Error('ملف الداتا غير صالح');
-    var data=parsed.data&&typeof parsed.data==='object'?parsed.data:parsed;
-    data=cleanData(data);if(!hasUsefulData(data))throw new Error('ملف الداتا فارغ');
-    return {data:data,hash:dataHash(data),counts:counts(data),meta:{revision:Number(parsed.revision)||0,updatedAt:parsed.updatedAt||parsed.exportedAt||''}};
-  }
+  function extractImport(parsed){if(!parsed||typeof parsed!=='object')throw new Error('ملف الداتا غير صالح');var data=parsed.data&&typeof parsed.data==='object'?parsed.data:parsed;data=cleanData(data);if(!hasUsefulData(data))throw new Error('ملف الداتا فارغ');return data}
   function importFile(input){
-    var file=input&&input.files&&input.files[0];if(!file)return;
-    var reader=new FileReader();
-    reader.onload=function(){
-      (async function(){
-        try{
-          var item=extractImport(JSON.parse(reader.result));
-          var msg='سيتم استيراد الداتا ورفعها تلقائيًا إلى Google بعد إنشاء نسخة أمان.\n\nالعملاء: '+item.counts.clients+'\nالمصانع: '+item.counts.factories+'\nالأوردرات: '+item.counts.orders+'\nالدفعات: '+item.counts.payments+'\n\nهل تستمر؟';
-          if(!confirm(msg))return;
-          DB=item.data;localWrite(DB);var p=markPending('import-json');if(p){p.hash=item.hash;p.data=item.data;savePending(p)}
-          setSync('work','تم حفظ ملف الاستيراد محليًا — جاري رفعه تلقائيًا إلى Google');
-          await forceReplacePending(pendingData());
-          toastSafe('تم الاستيراد والمزامنة');
-        }catch(e){console.error(e);setSync('err',e.message||'فشل الاستيراد');toastSafe(e.message||'فشل الاستيراد')}
-      })();
-    };
+    var file=input&&input.files&&input.files[0];if(!file)return;var reader=new FileReader();
+    reader.onload=function(){(async function(){try{var data=extractImport(JSON.parse(reader.result));if(!confirm('سيتم إنشاء Backup على Google ثم استيراد الملف بعد التحقق منه. هل تستمر؟'))return;var queue=emptyQueue(),form=captureActiveForm();queue.localSnapshot=data;queue.localUpdatedAt=now();queue.queue.push({mutationId:mutationId(),operation:'replaceSnapshot',entityType:'database',createdAt:now(),baseRevision:n(state.revision),replaceData:data,reason:'import-json',attempts:0,lastAttemptAt:'',form:form,blocked:false});DB=data;localWrite(DB);saveQueue(queue);holdForm(form);await pushPending(true)}catch(error){toastSafe(errorMessage(error))}})()};
     reader.onerror=function(){toastSafe('تعذر قراءة الملف')};reader.readAsText(file,'utf-8');
   }
-  function downloadBackup(){
-    try{
-      var meta={format:'HayderPackBackup',version:VERSION,exportedAt:now(),revision:state.revision||0,updatedAt:state.updatedAt||'',counts:counts(DB),data:cleanData(DB)};
-      var blob=new Blob([JSON.stringify(meta,null,2)],{type:'application/json;charset=utf-8'});
-      var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='HaydarPack_Backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},400);toastSafe('تم تنزيل نسخة JSON');
-    }catch(e){toastSafe('تعذر تنزيل النسخة')}
-  }
+  function downloadBackup(){try{var payload={format:'HayderPackBackup',version:VERSION,exportedAt:now(),revision:state.revision||0,stateHash:state.stateHash||'',counts:counts(DB),data:cleanData(DB)},blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='HaydarPack_Backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(link);link.click();setTimeout(function(){URL.revokeObjectURL(link.href);link.remove()},500);toastSafe('تم تنزيل نسخة JSON')}catch(error){toastSafe('تعذر تنزيل النسخة')}}
+  function downloadPending(){var queue=pendingData();if(!queue){toastSafe('لا توجد عملية معلقة');return}var blob=new Blob([JSON.stringify({version:VERSION,exportedAt:now(),queue:queue,data:cleanData(DB)},null,2)],{type:'application/json;charset=utf-8'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='HaydarPack_Pending_'+Date.now()+'.json';link.click();setTimeout(function(){URL.revokeObjectURL(link.href)},800)}
+
   function ensureSyncPanel(){
-    var drawer=document.querySelector('#dr-sync .drawer');if(!drawer)return;
-    var old=$('hp-stage4-sync-panel');if(old)old.remove();
-    if($('hp-v37-sync-panel'))return;
-    var div=document.createElement('div');div.id='hp-v37-sync-panel';div.className='alert blue';
-    div.innerHTML='<div style="font-weight:900;margin-bottom:8px">المزامنة التلقائية V40 Data Protection</div><div>أي تعديل يتحفظ فورًا على الجهاز ثم يترفع تلقائيًا على Google. لا تحتاج ترفع يدويًا.</div><div style="font-size:16px;margin-top:8px">رابط Apps Script /exec المستخدم:</div><div dir="ltr" style="word-break:break-all;font-size:14px;background:#fff;border:3px solid #000;border-radius:12px;padding:10px;margin:8px 0">'+backendUrl()+'</div><div id="hp-v37-pending-line" style="font-weight:900">حركات في انتظار الرفع: '+pendingCount()+'</div><div class="btn-row" style="margin-top:10px"><button class="btn green" onclick="refreshCloudData(true)"><i class="ti ti-refresh"></i> تحديث آمن من Google</button><button class="btn blue" onclick="manualSync()"><i class="ti ti-cloud-up"></i> مزامنة الآن للطوارئ</button></div><div class="btn-row" style="margin-top:8px"><button class="btn amber" onclick="restorePreviousGoogleData()"><i class="ti ti-rotate-clockwise"></i> استرجاع النسخة السابقة</button><button class="btn red" onclick="restoreLatestGoogleBackup()"><i class="ti ti-lifebuoy"></i> استرجاع أحدث Backup</button></div>';
-    var grid=drawer.querySelector('.cloud-status-grid');drawer.insertBefore(div,grid||drawer.children[2]||null);
+    var drawer=document.querySelector('#dr-sync .drawer');if(!drawer)return;var old=$('hp-stage4-sync-panel');if(old)old.remove();if($('hp-v37-sync-panel'))return;
+    var div=document.createElement('div');div.id='hp-v37-sync-panel';div.className='alert blue';div.innerHTML='<div style="font-weight:900;margin-bottom:8px">الحفظ المؤكد على Google — V58</div><div>لن تظهر رسالة نجاح إلا بعد تأكيد Google. إعادة المحاولة تستخدم نفس رقم العملية ولا تنشئ تكرارًا.</div><div id="hp-v37-pending-line" style="font-weight:900;margin-top:8px">حركات في انتظار التأكيد: '+pendingCount()+'</div><div class="btn-row" style="margin-top:10px"><button class="btn green" onclick="refreshCloudData(true)"><i class="ti ti-refresh"></i> تحديث آمن من Google</button><button class="btn blue" onclick="manualSync()"><i class="ti ti-cloud-up"></i> تأكيد الحفظ الآن</button></div>';
+    var grid=drawer.querySelector('.cloud-status-grid');drawer.insertBefore(div,grid||drawer.children[2]||null);updateUI();
   }
-  function triggerImport(){var i=$('cloud-import-input');if(i){i.value='';i.click()}}
+  function triggerImport(){var input=$('cloud-import-input');if(input){input.value='';input.click()}}
   function boot(){
-    if(booted)return;booted=true;backendUrl();loadState();localRead();migrateLegacyPending();
-    var localHash=dataHash(DB||{});
-    if(hasUsefulData(DB)&&!pendingData()){
-      if(state.ackHash&&localHash!==state.ackHash)markPending('local-newer-than-ack');
-      else if(!state.ackHash&&!state.revision)markPending('local-existing-no-meta');
-    }
-    try{if(typeof refreshAll==='function')refreshAll()}catch(e){}
-    hideLoading();onePage();
-    if(pendingData())pushPending(false);
-    else if(navigator.onLine)pull(false);
-    else setSync('err','أوفلاين — تم فتح آخر نسخة محفوظة على الجهاز');
-    clearInterval(metaTimer);metaTimer=setInterval(function(){
-      if(document.hidden||!navigator.onLine)return;
-      if(pendingData())pushPending(false);else checkMeta(false);
-    },60000);
-    try{if(typeof autoRefreshCurrentMonth==='function'){setInterval(autoRefreshCurrentMonth,60*60*1000);setTimeout(autoRefreshCurrentMonth,1500)}}catch(e){}
+    if(booted)return;booted=true;backendUrl();loadState();confirmed=readConfirmed();localRead();installUniqueIds();installToastGuard();installCloseGuard();
+    for(var i=0;i<LEGACY_PENDING_KEYS.length&&!pendingData();i++){var legacy=readJSON(LEGACY_PENDING_KEYS[i],null);if(legacy&&legacy.data){var queue=emptyQueue();queue.legacySnapshot=cleanData(legacy.data);queue.localSnapshot=queue.legacySnapshot;queue.localUpdatedAt=now();saveQueue(queue)}}
+    try{if(typeof refreshAll==='function')refreshAll()}catch(error){}hideLoading();onePage();
+    if(navigator.onLine)bootPull().catch(function(error){state.lastError=errorMessage(error);state.lastErrorCategory=error.category||'BACKEND_UNREACHABLE';saveState();setSync('err',(error.category||'BACKEND_UNREACHABLE')+': '+errorMessage(error));scheduleRetry()});else setSync('err','أوفلاين — البيانات الموجودة على الجهاز لم يتم اعتبارها محفوظة على Google');
+    clearInterval(metaTimer);metaTimer=setInterval(function(){if(document.hidden||!navigator.onLine)return;if(pendingData())pushPending(false);else checkMeta(false)},60000);
   }
 
   var oldOpenSync=window.openSync;
-  window.openSync=function(){var r=oldOpenSync?oldOpenSync.apply(this,arguments):undefined;setTimeout(function(){ensureSyncPanel();updateUI();onePage()},0);return r};
+  window.openSync=function(){var result=oldOpenSync?oldOpenSync.apply(this,arguments):undefined;setTimeout(function(){ensureSyncPanel();updateUI();onePage()},0);return result};
   window.refreshCloudData=function(show){return pendingData()?pushPending(!!show):pull(!!show)};
   window.loadFromDrive=function(){return window.refreshCloudData(true)};
   window.manualSync=function(){return pushPending(true)};
-  window.manualSyncNow=function(){return pushPending(true)};
+  window.manualSyncNow=window.manualSync;
   window.createCloudBackup=backup;
   window.triggerCloudImport=triggerImport;
   window.importCloudBackup=importFile;
   window.downloadManualBackup=downloadBackup;
-  window.scheduleSync=function(){markPending('scheduled');schedulePush(1500)};
-  window.save=save=function(skipSync){
-    var ok=localWrite(DB);
-    if(ok&&!suppress){
-      markPending(skipSync?'auto-save-safe':'auto-save');
-      setSync(navigator.onLine?'work':'err',navigator.onLine?'تم الحفظ على الجهاز — جاري الرفع تلقائيًا':'تم الحفظ على الجهاز — سيتم الرفع تلقائيًا عند رجوع الإنترنت');
-      schedulePush(1500);
-    }
-    return ok;
-  };
-  window.HP_V37_SYNC={version:VERSION,backendUrl:backendUrl,push:pushPending,pull:pull,checkMeta:checkMeta,markPending:markPending,dataHash:dataHash};
-  window.addEventListener('online',function(){setSync('work','رجع الإنترنت — جاري رفع أي تعديلات تلقائيًا');pushPending(false)});
+  window.downloadPendingOperation=downloadPending;
+  window.restorePreviousGoogleData=function(){return restoreFromRecoveryAction('restorePrevious','تم استرجاع النسخة السابقة من Google').catch(function(error){toastSafe(errorMessage(error));return false})};
+  window.restoreLatestGoogleBackup=function(){return restoreFromRecoveryAction('restoreLatestBackup','تم استرجاع أحدث Backup من Google').catch(function(error){toastSafe(errorMessage(error));return false})};
+  window.scheduleSync=function(){markPending('scheduled');schedulePush(250);return true};
+  window.save=save=function(skipSync){var ok=localWrite(DB);if(ok&&!suppress&&!skipSync){markPending('business-save');setSync(navigator.onLine?'work':'err',navigator.onLine?'جاري الحفظ على Google...':'لا يوجد إنترنت — البيانات محفوظة على الجهاز في انتظار Google')}return ok};
+  window.HP_V37_SYNC={version:VERSION,backendUrl:backendUrl,push:pushPending,pull:pull,checkMeta:checkMeta,markPending:markPending,dataHash:dataHash,pendingCount:pendingCount,state:function(){return clone(state)}};
+  window.HP_V58_SYNC=window.HP_V37_SYNC;
+  window.addEventListener('online',function(){setSync('work','عاد الإنترنت — جاري تأكيد العمليات المعلقة');pushPending(false)});
   window.addEventListener('focus',function(){if(pendingData())pushPending(false);else checkMeta(false)});
-  window.addEventListener('beforeunload',function(e){
-    try{
-      if(pendingData()){
-        e.preventDefault();
-        e.returnValue='يوجد تعديل محفوظ على الجهاز ولم يتم تأكيده على Google بعد. انتظر حتى تظهر حالة متصل ومحفوظ.';
-        return e.returnValue;
-      }
-    }catch(_){}
-  });
+  window.addEventListener('beforeunload',function(event){if(pendingData()||saving){event.preventDefault();event.returnValue='يوجد تعديل لم يؤكده Google بعد. انتظر حتى تظهر رسالة تم الحفظ على Google.';return event.returnValue}});
   document.addEventListener('visibilitychange',function(){if(!document.hidden){if(pendingData())pushPending(false);else checkMeta(false)}});
-  window.addEventListener('error',function(){setTimeout(function(){hideLoading();onePage()},400)});
-  window.addEventListener('unhandledrejection',function(){setTimeout(function(){hideLoading();onePage()},400)});
   document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,80);setTimeout(function(){hideLoading();onePage()},5000)});
-  window.addEventListener('load',function(){setTimeout(function(){hideLoading();onePage();if(!booted)boot()},1000)});
+  window.addEventListener('load',function(){setTimeout(function(){hideLoading();onePage();if(!booted)boot()},800)});
   setTimeout(function(){hideLoading();onePage();if(!booted)boot()},6500);
 })();
-
-
-/* ===== END SOURCE: 12-sync-import.js ===== */

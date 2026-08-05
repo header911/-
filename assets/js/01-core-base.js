@@ -261,8 +261,9 @@ function openNotify(){ var items=[]; var notPriced=DB.orders.filter(function(o){
 var showArchive=false;
 var currentDesignImage=null;
 try{ if(DB) DB.version=6; }catch(e){}
-window.addEventListener('error',function(e){ try{ console.error(e.error||e.message); showSafeError('تم منع خطأ من إيقاف البرنامج. لو الرسالة اتكررت اعمل Backup وقلل الصور.'); }catch(_){ } });
-window.addEventListener('unhandledrejection',function(e){ try{ console.error(e.reason); showSafeError('تم منع خطأ غير متوقع من إيقاف البرنامج.'); }catch(_){ } });
+function hpRuntimeErrorText(err,fallback){ var msg=''; try{msg=(err&&err.message)||String(err||'')}catch(_){} msg=String(msg||fallback||'خطأ غير معروف').replace(/\s+/g,' ').slice(0,220); return msg; }
+window.addEventListener('error',function(e){ try{ var err=e.error||e.message; console.error(err); showSafeError('خطأ في البرنامج: '+hpRuntimeErrorText(err,e.message)); }catch(_){ } });
+window.addEventListener('unhandledrejection',function(e){ try{ console.error(e.reason); showSafeError('خطأ غير متوقع: '+hpRuntimeErrorText(e.reason,'تعذر إكمال العملية')); }catch(_){ } });
 function showSafeError(msg){ var r=document.getElementById('panic-root'); if(!r) return; r.innerHTML='<div class="panic-box">'+safe(msg||'حدث خطأ وتم احتواؤه')+'</div>'; setTimeout(function(){ if(r) r.innerHTML=''; },5000); }
 function daysSince(v){ var d=dateOf(v); if(!d) return 0; return Math.floor((new Date()-d)/(1000*60*60*24)); }
 function activeOrders(){ return (DB.orders||[]).filter(function(o){return !o.archived}); }
@@ -288,7 +289,7 @@ function migrate(){
   if(!DB.factories.length){ DB.factories=[{id:uid(),name:'شريف',phone:'',debt:0},{id:uid(),name:'كوركت بلاست',phone:'',debt:0},{id:uid(),name:'القناطر',phone:'',debt:0}]; }
 }
 function save(skipSync){ try{ reduceDBForStorage(); localStorage.setItem('hayder_bags_app',JSON.stringify(DB)); }catch(e){ console.error(e); toast('تعذر الحفظ: غالباً مساحة الصور كبيرة'); showSafeError('مساحة المتصفح امتلأت غالباً بسبب الصور. تم منع التهنيج.'); } if(!skipSync) scheduleSync(); }
-function load(){ try{ var d=localStorage.getItem('hayder_bags_app'); if(d) DB=JSON.parse(d); }catch(e){ console.error(e); showSafeError('تعذر قراءة البيانات القديمة. البرنامج فتح ببيانات نظيفة.'); } try{ migrate(); save(true); safeRefreshAll(); }catch(e){ console.error(e); showSafeError('تم منع خطأ أثناء بدء التشغيل.'); } }
+function load(){ try{ var d=localStorage.getItem('hayder_bags_app'); if(d) DB=JSON.parse(d); }catch(e){ console.error(e); showSafeError('تعذر قراءة كاش الجهاز: '+hpRuntimeErrorText(e)); } try{ migrate(); save(true); safeRefreshAll(); }catch(e){ console.error(e); showSafeError('خطأ أثناء بدء التشغيل: '+hpRuntimeErrorText(e)); } }
 function openDrawer(id){ var el=g(id); if(!el)return; if(id==='dr-expense') fillExpenseOrderSelect(); el.classList.add('open'); el.querySelectorAll('input[type=date]').forEach(function(i){ if(!i.value) i.value=todayStr(); }); }
 function compressedImageFile(file,maxW,maxH,quality,cb){
   if(!file){ cb(null); return; }
@@ -454,9 +455,7 @@ function openOrderDetail(id){
     ['o-name','o-color','o-handle','o-print','o-width','o-height','o-size','o-qty','o-price','o-ak','o-deposit','o-notes'].forEach(function(id){ var el=g(id); if(el) el.removeAttribute('placeholder'); });
   }
 
-  // Make external script failures non-blocking in old phones
-  window.addEventListener('error',function(e){ try{ console.error(e.error||e.message); if(typeof showSafeError==='function') showSafeError('تم منع خطأ من إيقاف البرنامج.'); }catch(_){} });
-  window.addEventListener('unhandledrejection',function(e){ try{ console.error(e.reason); if(typeof showSafeError==='function') showSafeError('تم منع خطأ غير متوقع.'); }catch(_){} });
+  // Runtime errors are handled once by the categorized handler above.
 
   // Current status setup
   STATUSES = ['تم استلام الاوردر','تحت التنفيذ','تم الشحن','تم التوصيل للعميل'];
@@ -635,7 +634,7 @@ function openOrderDetail(id){
 
   // Final smooth load override
   var oldLoad=load;
-  load=function(){ try{ oldLoad(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('تم منع خطأ أثناء فتح البرنامج.'); }
+  load=function(){ try{ oldLoad(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('خطأ أثناء فتح البرنامج: '+hpRuntimeErrorText(e)); }
     try{ ensureBagTypes(); clearOrderPlaceholders(); renderCapitalPanel(); installBackGuard(); }catch(e){ console.error(e); }
   };
 })();
@@ -735,7 +734,7 @@ function openOrderDetail(id){
 
   var prevLoad=load;
   load=function(){
-    try{ prevLoad(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('تم منع خطأ أثناء فتح البرنامج.'); }
+    try{ prevLoad(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('خطأ أثناء فتح البرنامج: '+hpRuntimeErrorText(e)); }
     try{ cleanHomeCapital(); applyTopNav(); renderHome(); renderCapitalReportsPanel(); }catch(e){ console.error(e); }
   };
 })();
@@ -925,7 +924,7 @@ function openOrderDetail(id){
 
   var prevLoadV5=load;
   load=function(){
-    try{ prevLoadV5(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('تم منع خطأ أثناء فتح البرنامج.'); }
+    try{ prevLoadV5(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('خطأ أثناء فتح البرنامج: '+hpRuntimeErrorText(e)); }
     try{ ensureColorCountField(); (DB.orders||[]).forEach(normalizeOrderV5); save(true); renderFactories(); }catch(e){ console.error(e); }
   };
 })();
@@ -1114,7 +1113,7 @@ function openOrderDetail(id){
   exportInvoiceExcel=function(id){ var o=getOrder(id); if(!o)return; exportOrdersDocExcel([o],'invoice','invoice_'+(o.code||'order')+'.xlsx'); };
 
   var oldLoadV6=load;
-  load=function(){ try{ oldLoadV6(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('تم منع خطأ أثناء فتح البرنامج.'); } try{ ensureEntityCodes(); (DB.orders||[]).forEach(normalizeOrderV6); addHouseExpenseOption(); ensureFaceField(); ensureAppLogo(); save(true); renderFactories(); }catch(e){console.error(e)} };
+  load=function(){ try{ oldLoadV6(); }catch(e){ console.error(e); if(typeof showSafeError==='function') showSafeError('خطأ أثناء فتح البرنامج: '+hpRuntimeErrorText(e)); } try{ ensureEntityCodes(); (DB.orders||[]).forEach(normalizeOrderV6); addHouseExpenseOption(); ensureFaceField(); ensureAppLogo(); save(true); renderFactories(); }catch(e){console.error(e)} };
 })();
 
 
@@ -1220,14 +1219,14 @@ function openOrderDetail(id){
   async function exportOrdersDocExcelV7(orders,mode){if(typeof ExcelJS==='undefined'){toast('مكتبة Excel لم تحمل بعد. افتح الإنترنت أو استخدم طباعة PDF.');return}var docNo=nextDocNo(mode==='quote'?'QT':'INV'),wb=new ExcelJS.Workbook(),ws=wb.addWorksheet(mode==='quote'?'عرض سعر':'فاتورة بيع');ws.views=[{rightToLeft:true}];ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0};ws.addRow(['Haydarpack - حيدر باك']);ws.addRow([docNo]);ws.addRow([COMPANY_LINE]);ws.addRow([]);var headers=['كود الأوردر','اسم الصنف','نوع الشنطة','لون الشنطة','لون اليد','عدد الألوان','وجه','الكمية','سعر الشنطة','القيمة'];ws.addRow(headers);var tr=clientRows2(orders,mode);var tmp=document.createElement('tbody');tmp.innerHTML=tr.rows;Array.prototype.slice.call(tmp.querySelectorAll('tr')).forEach(function(row){ws.addRow(Array.prototype.slice.call(row.children).map(function(td){return td.textContent}))});ws.addRow([]);ws.addRow(['الإجمالي','','','','','','','','',money(tr.total)]);ws.columns.forEach(function(c){c.width=18});ws.getRow(1).font={bold:true,size:16};ws.getRow(5).font={bold:true};ws.getRow(5).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};ws.eachRow(function(r){r.eachCell(function(c){c.alignment={vertical:'middle',horizontal:'center',wrapText:true};c.border={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}}})});var buf=await wb.xlsx.writeBuffer(),blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=docNo+'-'+(mode==='quote'?'عرض_سعر':'فاتورة')+'.xlsx';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
   exportQuoteExcel=function(id){var o=getOrder2(id);if(!o)return;exportOrdersDocExcelV7([o],'quote')};
   exportInvoiceExcel=function(id){var o=getOrder2(id);if(!o)return;exportOrdersDocExcelV7([o],'invoice')};
-  var oldLoadV7=load;load=function(){try{oldLoadV7()}catch(e){console.error(e);if(typeof showSafeError==='function')showSafeError('تم منع خطأ أثناء فتح البرنامج.')}try{renderReports();setTimeout(resumeDriveAutoSync,500)}catch(e){console.error(e)}};
+  var oldLoadV7=load;load=function(){try{oldLoadV7()}catch(e){console.error(e);if(typeof showSafeError==='function')showSafeError('خطأ أثناء فتح البرنامج: '+hpRuntimeErrorText(e))}try{renderReports();setTimeout(resumeDriveAutoSync,500)}catch(e){console.error(e)}};
 })();
 
 
 // ================= V8 DATA SAFETY + LOCAL GOOGLE DRIVE FOLDER BACKUP =================
 (function(){
   'use strict';
-  var HP_APP_VERSION='57.5.0-print-reliability';
+  var HP_APP_VERSION='58.0.0-stable';
   var HP_SCHEMA_VERSION=10;
   var HP_LOCAL_KEY='hayder_bags_app';
   var HP_CURRENT_FILE='HayderPack_Current_Data.json';
@@ -1489,7 +1488,7 @@ window.HP_V37_LEGACY_BOOT_DISABLED=true;
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js?v=57_5printfinal').catch(function(e){console.warn('SW registration failed', e)});
+    navigator.serviceWorker.register('./sw.js?v=58_0_0_stable',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
   });
 }
 
@@ -1521,4 +1520,3 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   }catch(e){}
   document.addEventListener('DOMContentLoaded',function(){hpApplyDefaultBagColor(false)});
 })();
-

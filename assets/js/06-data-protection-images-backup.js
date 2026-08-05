@@ -150,6 +150,7 @@
     }
     return {status:status,ok:true};
   }
+  if(!window.HP_MUTATION_SYNC){
   var oldRefresh=window.refreshCloudData;
   window.refreshCloudData=async function(show){
     saveSafeSnapshot('before-safe-google-refresh');
@@ -183,6 +184,7 @@
     };
     try{save=window.save}catch(e){}
   }
+  }
   window.hpV39RestoreLocalSnapshot=restoreLocalSnapshot;
   window.hpV39RestoreBestCloud=function(){return restoreBestCloud().then(function(){return window.refreshCloudData(true)}).catch(function(e){toastSafe(e.message||'فشل الاسترجاع')})};
   window.hpV39DataGuardCheck=async function(){
@@ -193,7 +195,7 @@
     saveSafeSnapshot('before-safe-reload');
     try{await cloudPreflight(true)}catch(e){toastSafe((e&&e.message)||'فشل فحص الأمان — سيتم إعادة تحميل الصفحة فقط بدون مسح')}
     var base=location.href.split('?')[0];
-    location.href=base+'?v=57_5printfinal&safeReload='+Date.now();
+    location.href=base+'?v=58_0_0_stable&safeReload='+Date.now();
   };
   function panelHtml(){
     var c=counts(currentDB()), snap=readSafeSnapshot(), sc=snap&&snap.counts;
@@ -217,11 +219,12 @@
     if(line){var c=counts(currentDB());line.textContent=(msg?msg+' — ':'')+'نسخة الجهاز: '+fmtCounts(c)}
   }
   var oldOpenSync=window.openSync;
-  window.openSync=function(){var r=oldOpenSync?oldOpenSync.apply(this,arguments):undefined;setTimeout(function(){injectGuardPanel();updateGuardUI()},100);return r};
+  if(!window.HP_MUTATION_SYNC)window.openSync=function(){var r=oldOpenSync?oldOpenSync.apply(this,arguments):undefined;setTimeout(function(){injectGuardPanel();updateGuardUI()},100);return r};
   var oldOpenSettings=window.openSettings;
-  window.openSettings=function(){var r=oldOpenSettings?oldOpenSettings.apply(this,arguments):undefined;setTimeout(function(){injectGuardPanel();updateGuardUI()},120);return r};
+  if(!window.HP_MUTATION_SYNC)window.openSettings=function(){var r=oldOpenSettings?oldOpenSettings.apply(this,arguments):undefined;setTimeout(function(){injectGuardPanel();updateGuardUI()},120);return r};
   function boot(){
     saveSafeSnapshot('boot');
+    if(window.HP_MUTATION_SYNC){setInterval(function(){saveSafeSnapshot('auto-interval')},60000);return}
     var rep=localDestructiveReport();
     if(rep.danger){restoreLocalSnapshot();toastSafe('تم استرجاع نسخة محلية آمنة لأن النسخة المفتوحة كانت ناقصة')}
     setInterval(function(){saveSafeSnapshot('auto-interval')},60000);
@@ -338,8 +341,8 @@
    Scope: sync/backup UI only. Does not alter clients/orders/invoices/calculations. */
 (function(){
   'use strict';
-  var VERSION='57.5.0-print-reliability';
-  var SITE_VERSION='57_5printfinal';
+  var VERSION='58.0.0-stable';
+  var SITE_VERSION='58_0_0_stable';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -618,8 +621,8 @@
 /* ===== BEGIN V50 FINAL STABILITY GUARD ===== */
 (function(){
   'use strict';
-  var VERSION='57.5.0-print-reliability';
-  var SITE_VERSION='57_5printfinal';
+  var VERSION='58.0.0-stable';
+  var SITE_VERSION='58_0_0_stable';
   var LOG_KEY='hayder_pack_error_log_v49';
   var MAX_LOGS=80;
   var wrapped=false;
@@ -681,7 +684,7 @@
   function widgetHtml(){
     var s=statusText(), last=s.last;
     return '<div id="hp-v49-stability-widget" class="hp-v49-card">'
-      +'<div class="hp-v49-head"><i class="ti ti-activity-heartbeat"></i> حالة النظام V50</div>'
+      +'<div class="hp-v49-head"><i class="ti ti-activity-heartbeat"></i> حالة النظام V58</div>'
       +'<div class="hp-v49-grid">'
       +'<div class="hp-v49-mini"><b>الأخطاء المسجلة</b><span id="hp-v49-count" class="'+s.cls+'">'+esc(String(s.logs.length))+'</span></div>'
       +'<div class="hp-v49-mini"><b>آخر خطأ</b><span id="hp-v49-last">'+esc(last?(last.message||'—'):'لا يوجد')+'</span></div>'

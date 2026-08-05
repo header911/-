@@ -1,17 +1,17 @@
 {
-  "name": "Haydar Pack V58-RC",
+  "name": "Haydar Pack",
   "short_name": "Haydar Pack",
-  "description": "إدارة Haydar Pack مع حفظ مؤكد على Google",
-  "start_url": "./index.html?v=58rc4live1",
+  "description": "Haydar Pack order, clients, factories and invoices manager",
+  "start_url": "./index.html?v=58_0_0_stable",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "dir": "rtl",
   "lang": "ar",
-  "theme_color": "#10233f",
-  "background_color": "#f4f7fb",
+  "theme_color": "#1a1a2e",
+  "background_color": "#ffffff",
   "icons": [
-    {"src":"hp-logo-v3-192.png?v=58rc4live1","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"hp-logo-v3-512.png?v=58rc4live1","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {"src":"hp-logo-v3-192.png?v=58_0_0_stable","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"hp-logo-v3-512.png?v=58_0_0_stable","sizes":"512x512","type":"image/png","purpose":"any maskable"}
   ]
 }

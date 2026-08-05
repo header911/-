@@ -1,8 +1,8 @@
-# File Map V57.5
+# File Map V57.8
 
 - `index.html` — واجهة التطبيق وتحميل 8 ملفات JS فقط.
 - `config.js` — رابط Apps Script /exec.
-- `sw.js` — Service Worker وكاش V57.5.
+- `sw.js` — Service Worker وكاش V57.8.
 - `manifest.webmanifest` — إعدادات PWA.
 - `assets/css/styles.css` — التصميم.
 - `assets/js/01-core-base.js` — نواة التطبيق القديمة بعد تنظيف تعليقات Legacy غير المستخدمة.
