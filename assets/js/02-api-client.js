@@ -3,15 +3,19 @@
 
   if (!HP) throw new Error('HaydarPack core is required');
 
-  function backendUrl() {
-    var url = String(HP.config.backendUrl || '').trim().replace(/\s+/g, '').replace(/[?#].*$/, '').replace(/\/+$/, '');
-    if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/(?:exec|dev)$/i.test(url)) {
-      throw HP.errors.create('BACKEND_UNREACHABLE', 'رابط Apps Script الخاص ببيئة V58-RC غير مضبوط');
+  function normalizeBackendUrl(candidate) {
+    var url = String(candidate || '').trim().replace(/\s+/g, '').replace(/[?#].*$/, '').replace(/\/+$/, '');
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/i.test(url)) {
+      throw HP.errors.create('BACKEND_UNREACHABLE', 'أدخل رابط Web App الصحيح المنتهي بـ /exec', {configuration: true});
     }
     return url;
   }
 
-  function jsonp(action, params, timeoutMs) {
+  function backendUrl() {
+    return normalizeBackendUrl(HP.config.backendUrl);
+  }
+
+  function jsonpAt(url, action, params, timeoutMs) {
     return new Promise(function (resolve, reject) {
       var callback = 'hpV58_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2);
       var query = new URLSearchParams(Object.assign({}, params || {}, {
@@ -49,9 +53,32 @@
         cleanup();
         reject(HP.errors.create('NETWORK_TIMEOUT', 'انتهت مهلة الاتصال بـ Google'));
       }, timeoutMs || HP.config.requestTimeoutMs);
-      script.src = backendUrl() + '?' + query.toString();
+      script.src = normalizeBackendUrl(url) + '?' + query.toString();
       document.head.appendChild(script);
     });
+  }
+
+  function jsonp(action, params, timeoutMs) {
+    return jsonpAt(backendUrl(), action, params, timeoutMs);
+  }
+
+  function validateHealth(response) {
+    if (!response || response.ok !== true) throw HP.errors.create('BACKEND_UNREACHABLE', 'Apps Script لم يرجع استجابة Health صالحة', {configuration: true});
+    if (String(response.backendVersion || '') !== HP.version) {
+      throw HP.errors.create('VERSION_REJECTED', 'الرابط لا يخص Backend ' + HP.version + '. انشر حزمة Apps Script المرفقة ثم استخدم رابطها الجديد.', {configuration: true, expectedBackendVersion: HP.version, receivedBackendVersion: String(response.backendVersion || '')});
+    }
+    if (!/^STAGING(?:-|$)/i.test(String(response.environment || ''))) {
+      throw HP.errors.create('VERSION_REJECTED', 'رابط RC يجب أن يشير إلى بيئة STAGING مستقلة، وليس إلى الإنتاج أو V57.', {configuration: true, receivedEnvironment: String(response.environment || '')});
+    }
+    return response;
+  }
+
+  async function configureBackend(candidate) {
+    var url = normalizeBackendUrl(candidate);
+    var health = validateHealth(await jsonpAt(url, 'healthCheck', {}, 22000));
+    HP.store.writeBackendUrl(url);
+    HP.config.backendUrl = url;
+    return health;
   }
 
   function postNoCors(action, request) {
@@ -110,7 +137,7 @@
   }
 
   async function healthCheck() {
-    return jsonp('healthCheck', {}, 18000);
+    return validateHealth(await jsonp('healthCheck', {}, 18000));
   }
 
   async function getImage(imageId) {
@@ -125,6 +152,8 @@
     getState: getState,
     getRevision: getRevision,
     healthCheck: healthCheck,
+    configureBackend: configureBackend,
+    normalizeBackendUrl: normalizeBackendUrl,
     getImage: getImage,
     backendUrl: backendUrl
   };

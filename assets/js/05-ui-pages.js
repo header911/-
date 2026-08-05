@@ -403,6 +403,29 @@
     HP.ui.toast('تم الاحتفاظ بالبيانات؛ صححها ثم احفظ كمحاولة جديدة', 'warn');
   }
 
+  async function configureBackend(button) {
+    var input = $('backend-setup-url');
+    var status = $('backend-setup-status');
+    var value = String(input && input.value || '').trim();
+    if (!value) {
+      if (status) { status.className = 'backend-setup-status error'; status.textContent = 'BACKEND_UNREACHABLE: الصق رابط Apps Script المنتهي بـ /exec'; }
+      throw HP.errors.create('BACKEND_UNREACHABLE', 'الصق رابط Apps Script المنتهي بـ /exec', {configuration: true});
+    }
+    button.disabled = true;
+    if (status) { status.className = 'backend-setup-status working'; status.textContent = 'جاري فحص الرابط ونسخة Backend دون إرسال بيانات العمل...'; }
+    try {
+      var health = await HP.api.configureBackend(value);
+      if (status) { status.className = 'backend-setup-status success'; status.textContent = 'تم التحقق: ' + health.backendVersion + ' • ' + health.environment + '. جاري إعادة التشغيل الآمنة...'; }
+      setTimeout(function () { HP.ui.safeReload(); }, 650);
+    } catch (rawError) {
+      var error = HP.errors.normalize(rawError);
+      if (status) { status.className = 'backend-setup-status error'; status.textContent = error.code + ': ' + error.message; }
+      throw error;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
   async function boot() {
     if (HP.runtime.booted) return;
     HP.runtime.booted = true;
@@ -431,8 +454,10 @@
       HP.runtime.readOnly = true;
       HP.runtime.lastError = {category: error.code, message: error.message, timestamp: HP.util.now()};
       HP.diagnostics.log(error.code, error, {phase: 'boot'});
-      if (HP.store.getConfirmed()) { renderAll(); HP.ui.hideLoading(); HP.ui.setSyncState('error', 'عرض آخر نسخة مؤكدة محفوظة على الجهاز فقط: ' + error.message); HP.ui.toast('البرنامج في وضع القراءة فقط حتى يعود Google', 'error'); }
-      else { setText('cloud-loading-text', error.code + ': ' + error.message); HP.ui.setSyncState('error', error.message); }
+      var setupRequired = !!(error.details && error.details.configuration) || error.code === 'VERSION_REJECTED' || (!HP.store.getConfirmed() && error.code === 'BACKEND_UNREACHABLE');
+      if (setupRequired) { HP.ui.showBackendSetup(error); HP.ui.setSyncState('error', error.message); }
+      else if (HP.store.getConfirmed()) { renderAll(); HP.ui.hideLoading(); HP.ui.setSyncState('error', 'عرض آخر نسخة مؤكدة محفوظة على الجهاز فقط: ' + error.message); HP.ui.toast('البرنامج في وضع القراءة فقط حتى يعود Google', 'error'); }
+      else { setText('cloud-loading-code', error.code); setText('cloud-loading-text', error.message); HP.ui.setSyncState('error', error.message); }
       HP.events.emit('app:boot-failed', error);
     }
   }
@@ -446,6 +471,7 @@
     }
     Promise.resolve().then(function () {
       if (action === 'nav') showPage(button.dataset.page, button);
+      else if (action === 'backend-configure') return configureBackend(button);
       else if (action === 'open-sync') { HP.ui.openDrawer('dr-sync'); if (HP.backup) HP.backup.refreshStatus(); }
       else if (action === 'open-notify') openNotifications();
       else if (action === 'close') HP.ui.closeDrawer(button.dataset.drawer);

@@ -2,7 +2,7 @@
   "name": "Haydar Pack V58-RC",
   "short_name": "Haydar Pack",
   "description": "إدارة Haydar Pack مع حفظ مؤكد على Google",
-  "start_url": "./index.html?v=58rc2",
+  "start_url": "./index.html?v=58rc2setup1",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
@@ -11,7 +11,7 @@
   "theme_color": "#10233f",
   "background_color": "#f4f7fb",
   "icons": [
-    {"src":"hp-logo-v3-192.png?v=58rc2","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"hp-logo-v3-512.png?v=58rc2","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {"src":"hp-logo-v3-192.png?v=58rc2setup1","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"hp-logo-v3-512.png?v=58rc2setup1","sizes":"512x512","type":"image/png","purpose":"any maskable"}
   ]
 }

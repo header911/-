@@ -1,9 +1,10 @@
 {
   "product": "Haydar Pack",
   "version": "58.0.0-rc.2",
+  "build": "setup1",
   "channel": "RC",
   "environment": "STAGING",
-  "releaseToken": "58rc2",
+  "releaseToken": "58rc2setup1",
   "requiredBackendVersion": "58.0.0-rc.2",
   "productionEndpointIncluded": false
 }

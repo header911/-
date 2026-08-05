@@ -2,12 +2,13 @@
   'use strict';
 
   var APP_VERSION = '58.0.0-rc.2';
-  var RELEASE_TOKEN = '58rc2';
+  var RELEASE_TOKEN = '58rc2setup1';
   var CACHE_KEY = 'haydar_pack_v58_confirmed_state';
   var PENDING_KEY = 'haydar_pack_v58_pending_mutations';
   var DEVICE_KEY = 'haydar_pack_v58_device_id';
   var LOG_KEY = 'haydar_pack_v58_diagnostics';
   var LEGACY_PROOF_KEY = 'haydar_pack_v58_legacy_recovery_proofs';
+  var BACKEND_CONFIG_KEY = 'haydar_pack_v58_staging_backend_url';
   var listeners = {};
   var confirmed = null;
   var runtime = {
@@ -207,6 +208,20 @@
     writeJson(LEGACY_PROOF_KEY, rows.slice(0, 20));
   }
 
+  function storedBackendUrl() {
+    return String(readJson(BACKEND_CONFIG_KEY, '') || '').trim();
+  }
+
+  function writeBackendUrl(url) {
+    writeJson(BACKEND_CONFIG_KEY, String(url || '').trim());
+  }
+
+  function initialBackendUrl() {
+    var declared = String(window.HP_APPS_SCRIPT_URL || '').trim();
+    if (/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:[?#].*)?$/i.test(declared)) return declared;
+    return storedBackendUrl();
+  }
+
   function element(id) {
     return document.getElementById(id);
   }
@@ -237,6 +252,21 @@
     var cover = element('cloud-loading-cover');
     var text = element('cloud-loading-text');
     if (text) text.textContent = message || 'جاري تحميل آخر بيانات مؤكدة من Google...';
+    if (cover) cover.classList.remove('hide', 'hp-v29-forced-hide');
+  }
+
+  function showBackendSetup(error) {
+    var cover = element('cloud-loading-cover');
+    var panel = element('backend-setup-panel');
+    var code = element('cloud-loading-code');
+    var text = element('cloud-loading-text');
+    var input = element('backend-setup-url');
+    var status = element('backend-setup-status');
+    if (code) { code.textContent = String(error && error.code || 'BACKEND_UNREACHABLE'); code.classList.remove('hide'); }
+    if (text) text.textContent = String(error && error.message || 'اضبط رابط Apps Script الخاص ببيئة V58-RC');
+    if (input && !input.value) input.value = String(HP.config.backendUrl || storedBackendUrl() || '');
+    if (status) { status.textContent = ''; status.className = 'backend-setup-status'; }
+    if (panel) panel.classList.remove('hide');
     if (cover) cover.classList.remove('hide', 'hp-v29-forced-hide');
   }
 
@@ -273,17 +303,17 @@
     version: APP_VERSION,
     releaseToken: RELEASE_TOKEN,
     config: {
-      backendUrl: String(window.HP_APPS_SCRIPT_URL || '').trim(),
+      backendUrl: initialBackendUrl(),
       requestTimeoutMs: 15000,
       mutationTimeoutMs: 55000
     },
     runtime: runtime,
     util: {clone: clone, now: now, today: today, number: number, money: money, count: count, escapeHtml: escapeHtml, attr: attr, uid: uid, deviceId: deviceId},
     events: {on: on, emit: emit},
-    store: {loadCached: loadCachedConfirmed, setConfirmed: setConfirmed, getConfirmed: getConfirmed, getData: getData, blankData: blankData, pending: pendingItems, writePending: writePending, recoveryProofs: recoveryProofs, writeRecoveryProof: writeRecoveryProof},
+    store: {loadCached: loadCachedConfirmed, setConfirmed: setConfirmed, getConfirmed: getConfirmed, getData: getData, blankData: blankData, pending: pendingItems, writePending: writePending, recoveryProofs: recoveryProofs, writeRecoveryProof: writeRecoveryProof, storedBackendUrl: storedBackendUrl, writeBackendUrl: writeBackendUrl},
     errors: {create: createError, normalize: normalizeError},
     diagnostics: {log: log, list: logs},
-    ui: {element: element, toast: toast, setSyncState: setSyncState, showLoading: showLoading, hideLoading: hideLoading, openDrawer: openDrawer, closeDrawer: closeDrawer, safeReload: safeReload}
+    ui: {element: element, toast: toast, setSyncState: setSyncState, showLoading: showLoading, showBackendSetup: showBackendSetup, hideLoading: hideLoading, openDrawer: openDrawer, closeDrawer: closeDrawer, safeReload: safeReload}
   };
 
   window.HaydarPack = HP;
