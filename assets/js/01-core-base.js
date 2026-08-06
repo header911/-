@@ -1488,7 +1488,7 @@ window.HP_V37_LEGACY_BOOT_DISABLED=true;
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js?v=production_20260806_fix3',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
+    navigator.serviceWorker.register('./sw.js?v=production_20260806_fix4',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
   });
 }
 

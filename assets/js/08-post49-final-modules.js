@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-mobile-back-lite-fix';
-  var SITE_VERSION='production_20260806_fix3';
+  var SITE_VERSION='production_20260806_fix4';
   var booted=false, stack=[];
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
   function isMobile(){try{return window.matchMedia('(max-width: 760px)').matches}catch(e){return window.innerWidth<=760}}
@@ -79,7 +79,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix3';
+  var SITE_VERSION='production_20260806_fix4';
   var ROOT_ID='hp-v52-reports-pro';
 
   function byId(id){return document.getElementById(id)}
@@ -329,7 +329,7 @@
 (function(){
   'use strict';
   var VERSION='54.2.0-finance-lite-fix';
-  var SITE_VERSION='production_20260806_fix3';
+  var SITE_VERSION='production_20260806_fix4';
   var ROOT_ID='hp-v53-finance-insights';
   var MODAL_ID='hp-v53-drilldown-modal';
   var lastError='';
@@ -421,7 +421,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix3';
+  var SITE_VERSION='production_20260806_fix4';
   var REPORT_AUDIT_ID='hp-v533-post49-audit-strip';
   var BACKEND_PANEL_ID='hp-v533-backend-panel';
   var URL_KEY='hayder_pack_stage4_backend_url_v32';
@@ -501,7 +501,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix3';
+  var SITE_VERSION='production_20260806_fix4';
   var ROOT_ID='hp-v54-1-repair';
   var PREVIEW_MODAL_ID='hp-v54-doc-preview';
   var STATUS={draft:'Draft',sent:'Sent',paid:'Paid',cancelled:'Cancelled'};
@@ -639,7 +639,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix3';
+  var SITE_VERSION='production_20260806_fix4';
   var CARD_ID='hp-v55-quality-gate';
   var STYLE_ID='hp-v55-quality-style';
   function $(id){return document.getElementById(id)}
@@ -734,7 +734,7 @@
 (function(){
   'use strict';
   var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix3';
+  var SITE_VERSION='production_20260806_fix4';
   var PAGE='capital';
   var PAGE_ID='pg-capital';
   var NAV_ID='hp-v56-nav';
@@ -911,7 +911,7 @@
 /* ===== V57.8 Print Reliability + Smart Summary (no new JS files) ===== */
 (function(){
   'use strict';
-  var VERSION='2026.08.05-production-fix.1', SITE_VERSION='production_20260806_fix3';
+  var VERSION='2026.08.05-production-fix.1', SITE_VERSION='production_20260806_fix4';
   function q(s,root){return (root||document).querySelector(s)}
   function qa(s,root){return Array.prototype.slice.call((root||document).querySelectorAll(s))}
   function byId(id){return document.getElementById(id)}
