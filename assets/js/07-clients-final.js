@@ -17,7 +17,7 @@
 */
 (function(){
   'use strict';
-  var VERSION='2026.08.05-production-fix.1';
+  var VERSION='2026.08.06-production-fix.3';
   var state={filter:'all',sort:'activity'};
 
   function $(id){return document.getElementById(id)}
@@ -184,19 +184,90 @@
     toastSafe('تم حذف العميل وحفظ نسخة في سجل الحذف');
   };
 
+  function getPayment(paymentId){return arr('payments').find(function(p){return String(p&&p.id)===String(paymentId||'')})||null}
+  function ensurePaymentForm(){
+    var drawer=$('dr-payment');if(!drawer)return;
+    var panel=drawer.querySelector('.drawer');if(!panel)return;
+    if(!$('pay-edit-id')){var hidden=document.createElement('input');hidden.type='hidden';hidden.id='pay-edit-id';var cid=$('pay-cid');if(cid&&cid.parentNode)cid.parentNode.insertBefore(hidden,cid.nextSibling);else panel.appendChild(hidden)}
+    var title=panel.querySelector('.drawer-title');if(title&&!$('pay-drawer-title'))title.innerHTML='<i class="ti ti-cash"></i> <span id="pay-drawer-title">تسجيل دفعة عميل</span>';
+    var button=panel.querySelector('button[onclick="savePayment()"]');if(button){button.id='pay-save-btn'}
+  }
+  function setPaymentReceipt(receipt){
+    if(!window.lastReceiptPreview)window.lastReceiptPreview={};
+    window.lastReceiptPreview.payment=receipt&&typeof receipt==='object'?clone(receipt):null;
+    var preview=$('pay-receipt-preview');if(!preview)return;
+    if(receipt&&receipt.data){preview.src=receipt.data;preview.classList.remove('hide')}else{preview.removeAttribute('src');preview.classList.add('hide')}
+  }
+
+  window.openPaymentForm=function(cid,paymentId){
+    ensurePaymentForm();
+    var c=getClient(cid),payment=paymentId?getPayment(paymentId):null,edit=$('pay-edit-id'),title=$('pay-drawer-title'),button=$('pay-save-btn');
+    if(!c){toastSafe('العميل غير موجود');return}
+    if(paymentId&&!payment){toastSafe('الدفعة غير موجودة');return}
+    if(edit)edit.value=payment?payment.id:'';
+    if($('pay-cid'))$('pay-cid').value=cid;
+    if($('pay-info'))$('pay-info').textContent=(payment?'تعديل دفعة لـ: ':'تسجيل دفعة لـ: ')+(c.name||'');
+    if($('pay-amt'))$('pay-amt').value=payment?n(payment.amount):'';
+    if($('pay-date'))$('pay-date').value=payment&&payment.date?payment.date:today();
+    if($('pay-note'))$('pay-note').value=payment&&payment.note?payment.note:'';
+    if($('pay-receipt'))$('pay-receipt').value='';
+    setPaymentReceipt(payment&&payment.receipt?payment.receipt:null);
+    if(title)title.textContent=payment?'تعديل دفعة العميل':'تسجيل دفعة عميل';
+    if(button)button.innerHTML=payment?'<i class="ti ti-check"></i> حفظ تعديل الدفعة':'<i class="ti ti-check"></i> حفظ الدفعة';
+    openIf('dr-payment');
+  };
+
+  window.editPayment=function(paymentId){
+    var payment=getPayment(paymentId);if(!payment){toastSafe('الدفعة غير موجودة');return}
+    closeIf('dr-client-detail');window.openPaymentForm(payment.clientId,payment.id);
+  };
+
+  window.savePayment=function(){
+    ensurePaymentForm();
+    var amount=n($('pay-amt')&&$('pay-amt').value),clientId=String($('pay-cid')&&$('pay-cid').value||''),paymentId=String($('pay-edit-id')&&$('pay-edit-id').value||'');
+    if(!(amount>0)){toastSafe('أدخل مبلغ دفعة صحيح أكبر من صفر');return}
+    if(!getClient(clientId)){toastSafe('العميل غير موجود');return}
+    var receipt=window.lastReceiptPreview&&window.lastReceiptPreview.payment?clone(window.lastReceiptPreview.payment):null;
+    var values={clientId:clientId,amount:amount,date:($('pay-date')&&$('pay-date').value)||today(),note:(($('pay-note')&&$('pay-note').value)||'').trim(),receipt:receipt,updatedAt:now()};
+    if(paymentId){
+      var payment=getPayment(paymentId);if(!payment){toastSafe('الدفعة غير موجودة');return}
+      Object.assign(payment,values);toastSafe('تم تعديل الدفعة وإعادة حساب الرصيد');
+    }else{
+      ensureArr('payments').push(Object.assign({id:(typeof uid==='function'?uid():('pay_'+Date.now())),createdAt:now()},values));toastSafe('تم تسجيل الدفعة');
+    }
+    try{if(window.HP_V39_GUARD&&typeof HP_V39_GUARD.saveSafeSnapshot==='function')HP_V39_GUARD.saveSafeSnapshot(paymentId?'before-payment-edit':'before-payment-add')}catch(e){}
+    try{if(typeof save==='function')save()}catch(e){try{localStorage.setItem('hayder_bags_app',JSON.stringify(DB))}catch(_){}}
+    closeIf('dr-payment');if($('pay-edit-id'))$('pay-edit-id').value='';
+    try{if(typeof refreshAll==='function')refreshAll();else window.renderClients()}catch(e){}
+    setTimeout(function(){window.openClientDetail(clientId)},120);
+  };
+
+  window.deletePayment=function(paymentId){
+    var payment=getPayment(paymentId);if(!payment){toastSafe('الدفعة غير موجودة');return}
+    var client=getClient(payment.clientId),label=money(payment.amount)+' بتاريخ '+(payment.date||'بدون تاريخ');
+    if(!confirm('تأكيد حذف الدفعة '+label+'؟\n\nسيتم تعديل رصيد العميل والسيولة وكشف الحساب، مع حفظ نسخة في سجل الحذف.'))return;
+    try{if(window.HP_V39_GUARD&&typeof HP_V39_GUARD.saveSafeSnapshot==='function')HP_V39_GUARD.saveSafeSnapshot('before-payment-delete')}catch(e){}
+    logDelete({type:'payment',label:'دفعة '+label+(client?' — '+(client.name||''):''),payment:clone(payment),client:client?{id:client.id,name:client.name||''}:null});
+    DB.payments=arr('payments').filter(function(p){return String(p&&p.id)!==String(paymentId)});
+    try{if(typeof save==='function')save()}catch(e){try{localStorage.setItem('hayder_bags_app',JSON.stringify(DB))}catch(_){}}
+    try{if(typeof refreshAll==='function')refreshAll();else window.renderClients()}catch(e){}
+    toastSafe('تم حذف الدفعة وإعادة حساب الرصيد والسيولة');
+    setTimeout(function(){if(getClient(payment.clientId))window.openClientDetail(payment.clientId)},120);
+  };
+
   window.openClientDetail=function(cid){
     var c=getClient(cid);if(!c){toastSafe('العميل غير موجود');return}
     var orders=clientOrders(cid).sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))});
     var payments=clientPayments(cid).sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))});
     var total=clientTotalSafe(cid)+n(c.debt), paid=clientPaidSafe(cid), bal=clientBalanceSafe(cid), profitSum=orders.reduce(function(s,o){return s+orderProfit(o)},0);
     var orderHtml=orders.length?orders.map(function(o){var p=orderProfit(o), exp=orderExpenseTotal(o.id);return '<div class="row"><label class="doc-select-row" onclick="event.stopPropagation()"><input type="checkbox" class="client-order-check" value="'+esc(o.id)+'"><span><span class="row-name">'+esc(o.code||'')+' '+(typeof statusBadge==='function'?statusBadge(o.status):esc(o.status||''))+'</span><span class="row-sub">'+esc(o.date||'')+' · نهائي '+count(orderBillQty(o))+' · مصنع '+money(orderFactoryTotal(o))+(exp>0?' · مصاريف '+money(exp):'')+'</span></span></label><div style="text-align:left"><div class="row-val">'+money(orderClientNet(o))+'</div><div class="tiny '+(p>=0?'success':'danger')+'">صافي الربح: '+money(p)+'</div><button class="btn small" onclick="closeDrawer(\'dr-client-detail\');openOrderDetail(\''+attr(o.id)+'\')">فتح</button></div></div>'}).join(''):'<p class="muted tiny">لا توجد أوردرات</p>';
-    var payHtml=payments.length?payments.map(function(p){return '<div class="row"><div><div class="row-name">'+money(p.amount)+'</div><div class="row-sub">'+esc(p.date||'')+(p.note?' · '+esc(p.note):'')+'</div>'+(typeof receiptLink==='function'?receiptLink(p.receipt):'')+'</div><span class="badge bg-green">مدفوع</span></div>'}).join(''):'<p class="muted tiny">لا توجد دفعات</p>';
+    var payHtml=payments.length?payments.map(function(p){return '<div class="row"><div><div class="row-name">'+money(p.amount)+'</div><div class="row-sub">'+esc(p.date||'')+(p.note?' · '+esc(p.note):'')+'</div>'+(typeof receiptLink==='function'?receiptLink(p.receipt):'')+'</div><div style="text-align:left"><span class="badge bg-green">مدفوع</span><div class="btn-row" style="margin-top:7px;gap:6px"><button class="btn small amber" onclick="event.stopPropagation();editPayment(\''+attr(p.id)+'\')"><i class="ti ti-edit"></i> تعديل</button><button class="btn small red-out" onclick="event.stopPropagation();deletePayment(\''+attr(p.id)+'\')"><i class="ti ti-trash"></i> حذف</button></div></div></div>'}).join(''):'<p class="muted tiny">لا توجد دفعات</p>';
     var body=$('client-detail-body');if(!body)return;
     body.innerHTML='<div class="drawer-handle"></div><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div class="avatar av-blue" style="width:56px;height:56px;font-size:25px">'+esc((c.name||'?').charAt(0))+'</div><div><div class="drawer-title" style="margin:0">'+esc(clientNo(cid))+'- '+esc(c.name||'')+'</div><div class="row-sub">'+esc(c.phone||'')+(c.addr?' · '+esc(c.addr):'')+'</div></div></div><div class="stat-grid"><div class="stat-box blue"><div class="sl">إجمالي الطلبات</div><div class="sv">'+money(total)+'</div></div><div class="stat-box green"><div class="sl">المدفوع شامل العربون</div><div class="sv">'+money(paid)+'</div></div><div class="stat-box '+(bal>0?'red':'green')+'"><div class="sl">الرصيد</div><div class="sv">'+(bal>0?money(bal)+' باقي':bal<0?money(-bal)+' رصيد':'الحساب منتهي')+'</div></div><div class="stat-box amber"><div class="sl">مجموع صافي ربحك</div><div class="sv">'+money(profitSum)+'</div></div></div><div id="hp-v43-client-actions" class="btn-row" style="margin:10px 0 14px"><button class="btn amber" onclick="closeDrawer(\'dr-client-detail\');openClientForm(\''+attr(cid)+'\')"><i class="ti ti-edit"></i> تعديل بيانات العميل والمديونية</button><button class="btn red-out" onclick="deleteClient(\''+attr(cid)+'\')"><i class="ti ti-trash"></i> حذف العميل</button></div><button class="btn green full" style="margin-bottom:12px" onclick="closeDrawer(\'dr-client-detail\');openPaymentForm(\''+attr(cid)+'\')"><i class="ti ti-plus"></i> تسجيل دفعة</button><div class="sec-label">اختيار أوردرات لعرض السعر أو الفاتورة</div><div class="doc-action-bar"><button class="btn" onclick="toggleClientOrdersSelection(\''+attr(cid)+'\')"><i class="ti ti-checks"></i> تحديد/إلغاء الكل</button><button class="btn blue" onclick="printSelectedClientQuote(\''+attr(cid)+'\')"><i class="ti ti-file-dollar"></i> عرض سعر للمحدد</button><button class="btn green" onclick="printSelectedClientInvoice(\''+attr(cid)+'\')"><i class="ti ti-file-invoice"></i> فاتورة للمحدد</button><button class="btn amber" onclick="printSelectedClientStatement(\''+attr(cid)+'\')"><i class="ti ti-file-description"></i> كشف حساب عميل</button><button class="btn" onclick="exportClientReportExcel(\''+attr(cid)+'\')"><i class="ti ti-file-spreadsheet"></i> تقرير Excel</button></div><div class="card">'+orderHtml+'</div><div class="sec-label">الدفعات ('+payments.length+')</div><div class="card">'+payHtml+'</div><button class="btn full" style="margin-top:10px" onclick="closeDrawer(\'dr-client-detail\')">إغلاق</button>';
     openIf('dr-client-detail');
   };
 
-  function boot(){ensureClientForm();patchAddButton();ensureClientFilters();try{if((window.activePage||'')==='clients')window.renderClients()}catch(e){}}
+  function boot(){ensureClientForm();ensurePaymentForm();patchAddButton();ensureClientFilters();try{if((window.activePage||'')==='clients')window.renderClients()}catch(e){}}
   window.HP_CLIENTS={version:VERSION,render:window.renderClients,openDetail:window.openClientDetail,openForm:window.openClientForm,save:window.saveClient,deleteClient:window.deleteClient};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,600);
@@ -210,8 +281,8 @@
    Loaded last on purpose. It wraps final write functions only, without changing calculations or data model. */
 (function(){
   'use strict';
-  var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix4';
+  var VERSION='2026.08.06-production-fix.3';
+  var SITE_VERSION='production_20260806_fix5';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
@@ -327,8 +398,8 @@
 /* ===== V50 Backup Center Pro + Mobile Back Guard ===== */
 (function(){
   'use strict';
-  var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix4';
+  var VERSION='2026.08.06-production-fix.3';
+  var SITE_VERSION='production_20260806_fix5';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}

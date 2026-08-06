@@ -2,8 +2,8 @@
 (function(){
   'use strict';
 
-  var VERSION='2026.08.05-production-fix.1';
-  var SITE_VERSION='production_20260806_fix4';
+  var VERSION='2026.08.06-production-fix.3';
+  var SITE_VERSION='production_20260806_fix5';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -15,7 +15,7 @@
   var EMERGENCY_KEY='hayder_pack_emergency_local_backup_current';
   var LEGACY_PENDING_KEYS=['hayder_pack_stage4_pending_v32','hayder_pack_pwa_pending_v10','hayder_pack_unsynced_v9'];
   var FIXED_URL='https://script.google.com/macros/s/AKfycbyz3ChhXQ2xMZdD2UHmAsLitbgIvKcSGiQYX7zBNNrJb6h9lem5sLlOBgpkPCOyrWZd2A/exec';
-  var RETRY_DELAYS=[4000,8000,15000,30000,60000,120000];
+  var RETRY_DELAYS=[1500,3000,6000,12000,30000,60000];
 
   var state={revision:0,updatedAt:'',ackHash:'',stateHash:'',lastLocalSaveAt:'',lastCloudSaveAt:'',lastError:'',lastErrorCategory:'',lastAttemptAt:'',deviceId:'',backendVersion:'',serviceWorkerVersion:SITE_VERSION};
   var confirmed=null, syncTimer=null, retryTimer=null, metaTimer=null, reconcileTimer=null;
@@ -119,7 +119,14 @@
   function loadQueue(){
     var raw=readJSON(PENDING_KEY,null);
     if(!raw)return emptyQueue();
-    if(raw.formatVersion===2&&Array.isArray(raw.queue))return raw;
+    if(raw.formatVersion===2&&Array.isArray(raw.queue)){
+      var first=raw.queue[0];
+      if(first&&first.blocked&&['REVISION_CONFLICT','VERSION_REJECTED'].indexOf(raw.lastErrorCategory)>=0&&first.conflictRecoveryRelease!==SITE_VERSION){
+        first.blocked=false;first.conflictRecoveryRelease=SITE_VERSION;raw.lastError='جاري توفيق التعديل المعلق مع أحدث نسخة على Google';raw.lastErrorCategory='';
+        writeJSON(PENDING_KEY,raw);
+      }
+      return raw;
+    }
     var legacy=raw&&raw.data?cleanData(raw.data):null;
     return {formatVersion:2,queue:[],localSnapshot:legacy,legacySnapshot:legacy,localUpdatedAt:raw.localUpdatedAt||now(),attempts:n(raw.attempts),lastError:'',lastErrorCategory:''};
   }
@@ -163,7 +170,8 @@
     return patch;
   }
   function inferOperation(reason,patch){
-    var change=patch&&patch.collections&&patch.collections.length===1&&!(patch.values||[]).length?patch.collections[0]:null;
+    var businessChanges=(patch&&patch.collections||[]).filter(function(change){return ['deletedLog','deletedItems','deletedArchive'].indexOf(String(change&&change.key||''))<0});
+    var change=businessChanges.length===1&&!(patch.values||[]).length?businessChanges[0]:null;
     if(!change)return String(reason||'updateBusinessData').slice(0,80);
     var action=change.adds.length?'add':change.deletes.length?'delete':change.updates.length?'edit':'update';
     var names={clients:'Client',factories:'Factory',orders:'Order',payments:'Payment',transfers:'FactoryPayment',expenses:'Expense',capitalMoves:'CapitalMove',documents:'Document',houseExpenses:'HouseholdExpense',walletAdjustments:'LiquidityAdjustment'};
@@ -235,8 +243,9 @@
     writeJSON(EMERGENCY_KEY,{version:VERSION,reason:reason||'emergency',createdAt:now(),counts:counts(value),data:value});
   }
 
-  function markPending(reason){
-    var current=cleanData(DB||{}),queue=loadQueue(),base=queue.localSnapshot||(confirmed&&confirmed.data)||null;
+  function markPending(reason,baseOverride){
+    if(!confirmed)confirmed=readConfirmed();
+    var current=cleanData(DB||{}),queue=loadQueue(),base=queue.localSnapshot||(confirmed&&confirmed.data)||(baseOverride&&typeof baseOverride==='object'?cleanData(baseOverride):null);
     if(!base){queue.unbasedSnapshot=current;queue.localSnapshot=current;queue.localUpdatedAt=now();saveQueue(queue);schedulePush(100);return queue}
     var patch=buildPatch(base,current);
     if(patchEmpty(patch)){queue.localSnapshot=current;saveQueue(queue);return pendingData()}
@@ -305,12 +314,12 @@
     var lastError=null;
     for(var attempt=0;attempt<8;attempt++){
       try{
-        var result=await jsonp('getMutationStatus',{mutationId:id},8000);
+        var result=await jsonp('getMutationStatus',{mutationId:id,appVersion:VERSION},8000);
         if(result&&result.status==='committed'&&result.ok!==false)return result;
         if(result&&result.status==='rejected')throw responseError(result);
         if(result&&result.ok===false)throw responseError(result);
       }catch(error){lastError=error;if(error.category==='VERSION_REJECTED'||error.category==='INVALID_PAYLOAD'||error.category==='REVISION_CONFLICT'||error.category==='STATE_VALIDATION_FAILED')throw error}
-      await wait(350+attempt*250);
+      await wait(220+attempt*180);
     }
     throw lastError||categoryError('MUTATION_STATUS_UNKNOWN','لم يصل تأكيد Google بعد؛ العملية محفوظة وسيعاد الاستعلام بنفس الرقم');
   }
@@ -319,7 +328,7 @@
   function scheduleRetry(){
     clearTimeout(retryTimer);var queue=pendingData();if(!queue||!queue.queue.length)return;
     var first=queue.queue[0];if(first.blocked)return;
-    var delay=RETRY_DELAYS[Math.min(n(first.attempts),RETRY_DELAYS.length-1)];retryTimer=setTimeout(function(){pushPending(false)},delay);
+    var delay=RETRY_DELAYS[Math.min(Math.max(0,n(first.attempts)-1),RETRY_DELAYS.length-1)];retryTimer=setTimeout(function(){pushPending(false)},delay);
   }
   function scheduleReconcile(delay){
     clearTimeout(reconcileTimer);reconcileTimer=setTimeout(function(){if(!pendingData()&&!saving)pull(false,true)},delay==null?900:delay);
@@ -334,7 +343,7 @@
     state.lastAttemptAt=item.lastAttemptAt;saveState();
     var payload=item.operation==='replaceSnapshot'?{data:item.replaceData,confirm:'REPLACE_CONFIRMED'}:{patch:item.patch};
     await postForm('commitMutation',{mutationId:item.mutationId,deviceId:deviceId(),baseRevision:item.baseRevision,operation:item.operation,entityType:item.entityType||'data',createdAt:item.createdAt,payload:JSON.stringify(payload)});
-    await wait(650);
+    await wait(250);
     return pollMutation(item.mutationId);
   }
   async function pushPending(show){
@@ -362,7 +371,7 @@
     }catch(error){
       saving=false;queue=loadQueue();var current=queue.queue[0];
       var category=error.category||'SERVER_INTERNAL_ERROR',message=errorMessage(error);
-      if(current){current.attempts=item.attempts;current.lastAttemptAt=item.lastAttemptAt;current.blocked=['INVALID_PAYLOAD','REVISION_CONFLICT','VERSION_REJECTED','STATE_VALIDATION_FAILED'].indexOf(category)>=0}
+      if(current){current.attempts=item.attempts;current.lastAttemptAt=item.lastAttemptAt;current.blocked=['INVALID_PAYLOAD','REVISION_CONFLICT','VERSION_REJECTED','STATE_VALIDATION_FAILED'].indexOf(category)>=0;if(category==='REVISION_CONFLICT')current.conflictRecoveryRelease=SITE_VERSION}
       queue.lastError=message;queue.lastErrorCategory=category;saveQueue(queue);
       if(current&&current.blocked){cleanupPostFrames(item.mutationId);restoreForm(item.form)}else releaseForm(item.form,false);
       state.lastError=message;state.lastErrorCategory=category;saveState();setSync('err',category+': '+message);
@@ -463,7 +472,7 @@
   window.restorePreviousGoogleData=function(){return restoreFromRecoveryAction('restorePrevious','تم استرجاع النسخة السابقة من Google').catch(function(error){toastSafe(errorMessage(error));return false})};
   window.restoreLatestGoogleBackup=function(){return restoreFromRecoveryAction('restoreLatestBackup','تم استرجاع أحدث Backup من Google').catch(function(error){toastSafe(errorMessage(error));return false})};
   window.scheduleSync=function(){markPending('scheduled');schedulePush(250);return true};
-  window.save=save=function(skipSync){var ok=localWrite(DB);if(ok&&!suppress&&!skipSync){markPending('business-save');setSync(navigator.onLine?'work':'err',navigator.onLine?'تم تأمين العملية على الجهاز — جاري رفعها إلى Google':'لا يوجد إنترنت — العملية مؤمنة على الجهاز وسترفع إلى Google تلقائيًا')}return ok};
+  window.save=save=function(skipSync){var beforeLocal=readJSON(LOCAL_KEY,null),ok=localWrite(DB);if(ok&&!suppress&&!skipSync){markPending('business-save',beforeLocal);setSync(navigator.onLine?'work':'err',navigator.onLine?'تم تأمين العملية على الجهاز — جاري رفعها إلى Google':'لا يوجد إنترنت — العملية مؤمنة على الجهاز وسترفع إلى Google تلقائيًا')}return ok};
   window.HP_V37_SYNC={version:VERSION,backendUrl:backendUrl,push:pushPending,pull:pull,checkMeta:checkMeta,markPending:markPending,dataHash:dataHash,pendingCount:pendingCount,state:function(){return clone(state)}};
   window.HP_CONFIRMED_SYNC=window.HP_V37_SYNC;
   window.addEventListener('online',function(){setSync('work','عاد الإنترنت — جاري تأكيد العمليات المعلقة');pushPending(false)});
