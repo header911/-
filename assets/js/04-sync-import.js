@@ -2,8 +2,9 @@
 (function(){
   'use strict';
 
-  var VERSION='2026.08.06-production-fix.3';
-  var SITE_VERSION='production_20260806_fix5';
+  var VERSION='2026.08.06-production-fix.4';
+  var SITE_VERSION='production_20260806_fix6';
+  var CONFLICT_POLICY_VERSION=3;
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -20,7 +21,7 @@
   var state={revision:0,updatedAt:'',ackHash:'',stateHash:'',lastLocalSaveAt:'',lastCloudSaveAt:'',lastError:'',lastErrorCategory:'',lastAttemptAt:'',deviceId:'',backendVersion:'',serviceWorkerVersion:SITE_VERSION};
   var confirmed=null, syncTimer=null, retryTimer=null, metaTimer=null, reconcileTimer=null;
   var readFlights={};
-  var saving=false, booted=false, suppress=false, allowConfirmedToast=false;
+  var saving=false, booted=false, suppress=false, allowConfirmedToast=false, passiveFailureCount=0;
   var originalToast=window.toast, originalCloseDrawer=window.closeDrawer;
   var deferredDrawers={};
   var EDITABLE_DRAWERS={'dr-order':true,'dr-client':true,'dr-factory':true,'dr-transfer':true,'dr-expense':true,'dr-payment':true,'dr-fprice':true,'dr-capital':true};
@@ -121,7 +122,9 @@
     if(!raw)return emptyQueue();
     if(raw.formatVersion===2&&Array.isArray(raw.queue)){
       var first=raw.queue[0];
-      if(first&&first.blocked&&['REVISION_CONFLICT','VERSION_REJECTED'].indexOf(raw.lastErrorCategory)>=0&&first.conflictRecoveryRelease!==SITE_VERSION){
+      var recoverableConflict=raw.lastErrorCategory==='REVISION_CONFLICT'&&n(first&&first.serverConflictPolicyVersion)<CONFLICT_POLICY_VERSION;
+      var recoverableVersion=raw.lastErrorCategory==='VERSION_REJECTED'&&first&&first.conflictRecoveryRelease!==SITE_VERSION;
+      if(first&&first.blocked&&(recoverableConflict||recoverableVersion)){
         first.blocked=false;first.conflictRecoveryRelease=SITE_VERSION;raw.lastError='جاري توفيق التعديل المعلق مع أحدث نسخة على Google';raw.lastErrorCategory='';
         writeJSON(PENDING_KEY,raw);
       }
@@ -253,14 +256,37 @@
     queue.queue.push(item);queue.localSnapshot=current;queue.localUpdatedAt=item.createdAt;queue.lastError='';queue.lastErrorCategory='';state.lastLocalSaveAt=item.createdAt;saveState();saveQueue(queue);holdForm(form);schedulePush(80);return queue;
   }
 
+  function coalescePendingLocal(reason){
+    if(!confirmed)confirmed=readConfirmed();
+    var queue=loadQueue();
+    if(!queue.queue.length||queue.legacySnapshot||queue.unbasedSnapshot)return markPending(reason||'business-followup');
+    var lastIndex=queue.queue.length-1,last=queue.queue[lastIndex];
+    if(saving||last.blocked||n(last.attempts)>0)return markPending(reason||'business-followup');
+    var base=confirmed&&confirmed.data?cleanData(confirmed.data):null;
+    if(!base)return markPending(reason||'business-followup');
+    for(var i=0;i<lastIndex;i++)base=applyPatchLocal(base,queue.queue[i].patch||{});
+    var current=cleanData(DB||{}),patch=buildPatch(base,current);
+    if(patchEmpty(patch)){queue.queue.splice(lastIndex,1)}else{last.patch=patch;last.operation=inferOperation(last.reason||reason,patch);last.entityType=entityTypeForPatch(patch)}
+    queue.localSnapshot=current;queue.localUpdatedAt=now();queue.lastError='';queue.lastErrorCategory='';saveQueue(queue);schedulePush(40);return queue;
+  }
+
   function setText(id,text,cls){var element=$(id);if(!element)return;element.textContent=text;if(cls)element.className='cloud-status-value '+cls}
   function setSync(name,message){
     try{if(typeof setSyncState==='function')setSyncState(name,message||'')}catch(error){}
     var status=$('sync-status');if(status)status.textContent=message||'';
-    var cls=name==='ok'?'success':name==='work'?'warn':name==='err'?'danger':'';
-    setText('cloud-connection-status',name==='ok'?'متصل ومحفوظ':name==='work'?'جاري تأكيد Google':name==='err'?'الحفظ لم يتأكد بعد':'جاهز',cls);
+    var cls=name==='ok'?'success':name==='work'||name==='soft'?'warn':name==='err'?'danger':'';
+    setText('cloud-connection-status',name==='ok'?'متصل ومحفوظ':name==='work'?'جاري تأكيد Google':name==='soft'?'آخر بيانات مؤكدة محفوظة':name==='err'?'الحفظ لم يتأكد بعد':'جاهز',cls);
     var banner=$('cloud-offline-banner');if(banner){if(name==='err'){banner.textContent=message||'لم يتم تأكيد الحفظ على Google';banner.classList.add('show')}else{banner.classList.remove('show');banner.textContent=''}}
   }
+  function noteReadFailure(error,show){
+    var category=error&&error.category||'BACKEND_UNREACHABLE',message=errorMessage(error),transient=['NETWORK_TIMEOUT','BACKEND_UNREACHABLE'].indexOf(category)>=0;
+    state.lastError=message;state.lastErrorCategory=category;saveState();
+    if(show||pendingData()||!transient){setSync('err',category+': '+message);return}
+    passiveFailureCount++;
+    setSync('soft','Google تأخر مؤقتًا — آخر بيانات مؤكدة محفوظة وسيعاد الاتصال تلقائيًا');
+    scheduleReconcile([3000,10000,30000,60000][Math.min(passiveFailureCount-1,3)]);
+  }
+  function clearConnectionFailure(){passiveFailureCount=0;state.lastError='';state.lastErrorCategory=''}
   function updateUI(){
     setText('cloud-revision-status',String(state.revision||0));setText('cloud-last-status',fmtTime(state.lastCloudSaveAt||state.updatedAt));
     var queue=pendingData(),area=$('cloud-conflict-area');
@@ -350,7 +376,7 @@
     if(saving)return false;
     var queue=loadQueue();
     if(queue.legacySnapshot||queue.unbasedSnapshot){await prepareUnbasedQueue(queue);queue=loadQueue()}
-    if(!queue.queue.length){if(show)toastSafe('لا توجد تعديلات معلقة');return checkMeta(false)}
+    if(!queue.queue.length){if(show)toastSafe('لا توجد تعديلات معلقة');return checkMeta(!!show)}
     if(!navigator.onLine){setSync('err','لا يوجد إنترنت — البيانات محفوظة على الجهاز ولم يتم اعتبارها محفوظة على Google');scheduleRetry();return false}
     var item=queue.queue[0];if(item.blocked&&!show){updateUI();return false}if(show)item.blocked=false;
     saving=true;setSync('work','جاري الحفظ على Google...');saveQueue(queue);
@@ -362,7 +388,7 @@
       if(queue.queue.length&&queue.queue[0].mutationId===item.mutationId)queue.queue.shift();
       queue.lastError='';queue.lastErrorCategory='';queue.localUpdatedAt=now();saveQueue(queue);
       releaseForm(item.form,true);
-      state.lastCloudSaveAt=result.serverTimestamp||now();state.lastError='';state.lastErrorCategory='';state.revision=n(result.revision)||state.revision;state.stateHash=result.stateHash||state.stateHash;saveState();
+      state.lastCloudSaveAt=result.serverTimestamp||now();clearConnectionFailure();state.revision=n(result.revision)||state.revision;state.stateHash=result.stateHash||state.stateHash;saveState();
       toastSafe('تم الحفظ على Google');
       saving=false;
       setSync('ok','تم الحفظ على Google');
@@ -371,7 +397,8 @@
     }catch(error){
       saving=false;queue=loadQueue();var current=queue.queue[0];
       var category=error.category||'SERVER_INTERNAL_ERROR',message=errorMessage(error);
-      if(current){current.attempts=item.attempts;current.lastAttemptAt=item.lastAttemptAt;current.blocked=['INVALID_PAYLOAD','REVISION_CONFLICT','VERSION_REJECTED','STATE_VALIDATION_FAILED'].indexOf(category)>=0;if(category==='REVISION_CONFLICT')current.conflictRecoveryRelease=SITE_VERSION}
+      var serverConflictPolicy=n(error&&error.details&&error.details.conflictPolicyVersion);
+      if(current){current.attempts=item.attempts;current.lastAttemptAt=item.lastAttemptAt;current.serverConflictPolicyVersion=serverConflictPolicy;current.blocked=['INVALID_PAYLOAD','VERSION_REJECTED','STATE_VALIDATION_FAILED'].indexOf(category)>=0||(category==='REVISION_CONFLICT'&&serverConflictPolicy>=CONFLICT_POLICY_VERSION);if(category==='REVISION_CONFLICT')current.conflictRecoveryRelease=SITE_VERSION}
       queue.lastError=message;queue.lastErrorCategory=category;saveQueue(queue);
       if(current&&current.blocked){cleanupPostFrames(item.mutationId);restoreForm(item.form)}else releaseForm(item.form,false);
       state.lastError=message;state.lastErrorCategory=category;saveState();setSync('err',category+': '+message);
@@ -386,7 +413,7 @@
     var remote=cleanData(result.data||{});if(!hasUsefulData(remote)&&hasUsefulData(DB))throw categoryError('STATE_VALIDATION_FAILED','Google أعاد قاعدة فارغة؛ تم الحفاظ على نسخة الجهاز ولم يتم استبدالها');
     if(hasUsefulData(DB))saveEmergencyLocalBackup('before-google-state',DB);
     suppress=true;try{DB=remote;if(typeof migrate==='function')migrate();localWrite(DB)}finally{suppress=false}
-    writeConfirmed(DB,result);state.lastCloudSaveAt=result.updatedAt||state.lastCloudSaveAt;state.lastError='';state.lastErrorCategory='';saveState();
+    writeConfirmed(DB,result);state.lastCloudSaveAt=result.updatedAt||state.lastCloudSaveAt;clearConnectionFailure();saveState();
     try{if(typeof refreshAll==='function')refreshAll();if(typeof runDataHealthCheckUI==='function')runDataHealthCheckUI()}catch(error){console.error(error)}
     setSync('ok',message||'متصل ومحفوظ على Google');onePage();return result;
   }
@@ -410,7 +437,7 @@
       setSync('work','جاري تحميل آخر بيانات مؤكدة من Google...');var result=await getRemoteState();
       if(!pendingData()&&dataHash(DB)===localHashBefore)applyRemote(result,show?'تم تحميل آخر تحديث من Google':'متصل ومحفوظ على Google');
       if(show)toastSafe('تم تحميل آخر تحديث');return result;
-    }catch(error){state.lastError=errorMessage(error);state.lastErrorCategory=error.category||'BACKEND_UNREACHABLE';saveState();setSync('err',(error.category||'BACKEND_UNREACHABLE')+': '+errorMessage(error));return null}
+    }catch(error){noteReadFailure(error,!!show);return null}
   }
   async function bootPull(){
     var queue=loadQueue(),local=cleanData(DB||{});
@@ -427,7 +454,7 @@
   function checkMeta(show){
     if(pendingData())return pushPending(false);
     if(!navigator.onLine)return Promise.resolve(null);
-    return jsonp('getRevision',{},18000).then(function(meta){if(!meta||meta.ok===false)throw responseError(meta);if(n(meta.revision)>n(state.revision))return pull(false);state.revision=n(meta.revision)||state.revision;state.updatedAt=meta.updatedAt||state.updatedAt;state.ackHash=meta.checksum||state.ackHash;state.stateHash=meta.stateHash||state.stateHash;state.backendVersion=meta.backendVersion||meta.appVersion||state.backendVersion;saveState();setSync('ok','متصل ومحفوظ على Google');return meta}).catch(function(error){if(show)setSync('err',(error.category||'BACKEND_UNREACHABLE')+': '+errorMessage(error));return null})
+    return jsonp('getRevision',{},18000).then(function(meta){if(!meta||meta.ok===false)throw responseError(meta);if(n(meta.revision)>n(state.revision))return pull(false);state.revision=n(meta.revision)||state.revision;state.updatedAt=meta.updatedAt||state.updatedAt;state.ackHash=meta.checksum||state.ackHash;state.stateHash=meta.stateHash||state.stateHash;state.backendVersion=meta.backendVersion||meta.appVersion||state.backendVersion;clearConnectionFailure();saveState();setSync('ok','متصل ومحفوظ على Google');return meta}).catch(function(error){noteReadFailure(error,!!show);return null})
   }
 
   function backup(){if(!navigator.onLine){toastSafe('يلزم الإنترنت لإنشاء Backup على Google');return Promise.resolve(false)}setSync('work','جاري إنشاء Backup على Google...');return jsonp('createBackup',{},35000).then(function(result){if(!result||result.ok===false)throw responseError(result);setSync('ok','تم إنشاء Backup على Google');toastSafe('تم إنشاء النسخة الاحتياطية');return true}).catch(function(error){setSync('err',errorMessage(error));toastSafe(errorMessage(error));return false})}
@@ -454,7 +481,7 @@
     if(booted)return;booted=true;backendUrl();loadState();confirmed=readConfirmed();localRead();installUniqueIds();installToastGuard();installCloseGuard();
     for(var i=0;i<LEGACY_PENDING_KEYS.length&&!pendingData();i++){var legacy=readJSON(LEGACY_PENDING_KEYS[i],null);if(legacy&&legacy.data){var queue=emptyQueue();queue.legacySnapshot=cleanData(legacy.data);queue.localSnapshot=queue.legacySnapshot;queue.localUpdatedAt=now();saveQueue(queue)}}
     try{if(typeof refreshAll==='function')refreshAll()}catch(error){}hideLoading();onePage();
-    if(navigator.onLine)bootPull().catch(function(error){state.lastError=errorMessage(error);state.lastErrorCategory=error.category||'BACKEND_UNREACHABLE';saveState();setSync('err',(error.category||'BACKEND_UNREACHABLE')+': '+errorMessage(error));scheduleRetry()});else setSync('err','أوفلاين — البيانات الموجودة على الجهاز لم يتم اعتبارها محفوظة على Google');
+    if(navigator.onLine)bootPull().catch(function(error){noteReadFailure(error,false)});else setSync('soft','أوفلاين — تم فتح آخر نسخة مؤكدة محفوظة على الجهاز');
     clearInterval(metaTimer);metaTimer=setInterval(function(){if(document.hidden||!navigator.onLine)return;if(pendingData())pushPending(false);else checkMeta(false)},60000);
   }
 
@@ -472,10 +499,10 @@
   window.restorePreviousGoogleData=function(){return restoreFromRecoveryAction('restorePrevious','تم استرجاع النسخة السابقة من Google').catch(function(error){toastSafe(errorMessage(error));return false})};
   window.restoreLatestGoogleBackup=function(){return restoreFromRecoveryAction('restoreLatestBackup','تم استرجاع أحدث Backup من Google').catch(function(error){toastSafe(errorMessage(error));return false})};
   window.scheduleSync=function(){markPending('scheduled');schedulePush(250);return true};
-  window.save=save=function(skipSync){var beforeLocal=readJSON(LOCAL_KEY,null),ok=localWrite(DB);if(ok&&!suppress&&!skipSync){markPending('business-save',beforeLocal);setSync(navigator.onLine?'work':'err',navigator.onLine?'تم تأمين العملية على الجهاز — جاري رفعها إلى Google':'لا يوجد إنترنت — العملية مؤمنة على الجهاز وسترفع إلى Google تلقائيًا')}return ok};
+  window.save=save=function(skipSync){var beforeLocal=readJSON(LOCAL_KEY,null),ok=localWrite(DB);if(ok&&!suppress){if(skipSync&&pendingData())coalescePendingLocal('business-followup');else if(!skipSync){markPending('business-save',beforeLocal);setSync(navigator.onLine?'work':'err',navigator.onLine?'تم تأمين العملية على الجهاز — جاري رفعها إلى Google':'لا يوجد إنترنت — العملية مؤمنة على الجهاز وسترفع إلى Google تلقائيًا')}}return ok};
   window.HP_V37_SYNC={version:VERSION,backendUrl:backendUrl,push:pushPending,pull:pull,checkMeta:checkMeta,markPending:markPending,dataHash:dataHash,pendingCount:pendingCount,state:function(){return clone(state)}};
   window.HP_CONFIRMED_SYNC=window.HP_V37_SYNC;
-  window.addEventListener('online',function(){setSync('work','عاد الإنترنت — جاري تأكيد العمليات المعلقة');pushPending(false)});
+  window.addEventListener('online',function(){if(pendingData()){setSync('work','عاد الإنترنت — جاري تأكيد العمليات المعلقة');pushPending(false)}else checkMeta(false)});
   window.addEventListener('focus',function(){if(pendingData())pushPending(false);else checkMeta(false)});
   document.addEventListener('visibilitychange',function(){if(!document.hidden){if(pendingData())pushPending(false);else checkMeta(false)}});
   document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,80);setTimeout(function(){hideLoading();onePage()},5000)});

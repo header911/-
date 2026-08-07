@@ -17,7 +17,7 @@
 */
 (function(){
   'use strict';
-  var VERSION='2026.08.06-production-fix.3';
+  var VERSION='2026.08.06-production-fix.4';
   var state={filter:'all',sort:'activity'};
 
   function $(id){return document.getElementById(id)}
@@ -281,8 +281,8 @@
    Loaded last on purpose. It wraps final write functions only, without changing calculations or data model. */
 (function(){
   'use strict';
-  var VERSION='2026.08.06-production-fix.3';
-  var SITE_VERSION='production_20260806_fix5';
+  var VERSION='2026.08.06-production-fix.4';
+  var SITE_VERSION='production_20260806_fix6';
   var LOCAL_KEY='hayder_bags_app';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
   var META_KEY='hayder_pack_sync_meta_v37';
@@ -398,8 +398,8 @@
 /* ===== V50 Backup Center Pro + Mobile Back Guard ===== */
 (function(){
   'use strict';
-  var VERSION='2026.08.06-production-fix.3';
-  var SITE_VERSION='production_20260806_fix5';
+  var VERSION='2026.08.06-production-fix.4';
+  var SITE_VERSION='production_20260806_fix6';
   var booted=false;
   function $(id){return document.getElementById(id)}
   function q(s,r){return (r||document).querySelector(s)}
