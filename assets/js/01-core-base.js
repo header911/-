@@ -1227,7 +1227,7 @@ function openOrderDetail(id){
 // ================= V8 DATA SAFETY + LOCAL GOOGLE DRIVE FOLDER BACKUP =================
 (function(){
   'use strict';
-  var HP_APP_VERSION='2026.08.06-production-fix.4';
+  var HP_APP_VERSION='2026.08.07-production-fix.5';
   var HP_SCHEMA_VERSION=10;
   var HP_LOCAL_KEY='hayder_bags_app';
   var HP_CURRENT_FILE='HayderPack_Current_Data.json';
@@ -1489,7 +1489,7 @@ window.HP_V37_LEGACY_BOOT_DISABLED=true;
 /* Haydar Pack V33 Stage 5 split file: 02-pwa-register.js. Preserves execution order from stable version. */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js?v=production_20260806_fix6',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
+    navigator.serviceWorker.register('./sw.js?v=production_20260807_fix7',{updateViaCache:'none'}).then(function(registration){return registration.update()}).catch(function(e){console.warn('SW registration failed', e)});
   });
 }
 

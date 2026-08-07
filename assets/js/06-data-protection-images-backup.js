@@ -195,7 +195,7 @@
     saveSafeSnapshot('before-safe-reload');
     try{await cloudPreflight(true)}catch(e){toastSafe((e&&e.message)||'فشل فحص الأمان — سيتم إعادة تحميل الصفحة فقط بدون مسح')}
     var base=location.href.split('?')[0];
-    location.href=base+'?v=production_20260806_fix6&safeReload='+Date.now();
+    location.href=base+'?v=production_20260807_fix7&safeReload='+Date.now();
   };
   function panelHtml(){
     var c=counts(currentDB()), snap=readSafeSnapshot(), sc=snap&&snap.counts;
@@ -341,8 +341,8 @@
    Scope: sync/backup UI only. Does not alter clients/orders/invoices/calculations. */
 (function(){
   'use strict';
-  var VERSION='2026.08.06-production-fix.4';
-  var SITE_VERSION='production_20260806_fix6';
+  var VERSION='2026.08.07-production-fix.5';
+  var SITE_VERSION='production_20260807_fix7';
   var LOCAL_KEY='hayder_bags_app';
   var META_KEY='hayder_pack_sync_meta_v37';
   var PENDING_KEY='hayder_pack_sync_pending_v37';
@@ -618,8 +618,8 @@
 /* ===== BEGIN V50 FINAL STABILITY GUARD ===== */
 (function(){
   'use strict';
-  var VERSION='2026.08.06-production-fix.4';
-  var SITE_VERSION='production_20260806_fix6';
+  var VERSION='2026.08.07-production-fix.5';
+  var SITE_VERSION='production_20260807_fix7';
   var LOG_KEY='hayder_pack_error_log_v49';
   var MAX_LOGS=80;
   var wrapped=false;
